@@ -2,8 +2,9 @@ import {
   useScroll,
   useTransform,
   motion,
+  useSpring,
 } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 interface TimelineEntry {
   title: string;
@@ -16,20 +17,32 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
-  useEffect(() => {
+  const updateHeight = useCallback(() => {
     if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setHeight(rect.height);
+      setHeight(ref.current.getBoundingClientRect().height);
     }
-  }, [ref]);
+  }, []);
+
+  useEffect(() => {
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, [updateHeight]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 10%", "end 50%"],
   });
 
-  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
-  const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  const heightTransform = useTransform(smoothProgress, [0, 1], [0, height]);
+  const opacityTransform = useTransform(smoothProgress, [0, 0.1], [0, 1]);
+  const glowOpacity = useTransform(smoothProgress, [0, 0.1], [0, 0.6]);
 
   return (
     <div
@@ -82,18 +95,39 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
             </div>
           </div>
         ))}
+
+        {/* Background track */}
         <div
-          style={{
-            height: height + "px",
-          }}
-          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-white/10 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
+          style={{ height: height + "px" }}
+          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
         >
+          <div className="absolute inset-0 w-full bg-white/[0.06]" />
+
+          {/* Glow layer */}
+          <motion.div
+            style={{
+              height: heightTransform,
+              opacity: glowOpacity,
+            }}
+            className="absolute inset-x-0 top-0 w-[6px] -translate-x-[2px] blur-[4px] bg-gradient-to-t from-brand-orange via-brand-orange/40 to-transparent rounded-full"
+          />
+
+          {/* Main animated line */}
           <motion.div
             style={{
               height: heightTransform,
               opacity: opacityTransform,
             }}
-            className="absolute inset-x-0 top-0 w-[2px] bg-gradient-to-t from-brand-orange via-orange-500 to-transparent from-[0%] via-[10%] rounded-full"
+            className="absolute inset-x-0 top-0 w-[2px] bg-gradient-to-t from-brand-orange via-orange-500 to-transparent rounded-full"
+          />
+
+          {/* Bright tip dot */}
+          <motion.div
+            style={{
+              top: heightTransform,
+              opacity: opacityTransform,
+            }}
+            className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-[6px] h-[6px] rounded-full bg-brand-orange shadow-[0_0_12px_4px_rgba(255,51,0,0.5)]"
           />
         </div>
       </div>
