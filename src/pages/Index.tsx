@@ -189,7 +189,12 @@ export default function Index() {
         </main>
 
         {/* Bottom Widgets */}
-        <div className="flex flex-col md:flex-row justify-between gap-6 mt-12 pb-4 items-end w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.9, ease: "easeOut" }}
+          className="flex flex-col md:flex-row justify-between gap-6 mt-12 pb-4 items-end w-full"
+        >
           
           {/* Widget 1: The Mission */}
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2rem] p-6 flex flex-col h-72 w-full md:max-w-sm relative overflow-hidden group">
