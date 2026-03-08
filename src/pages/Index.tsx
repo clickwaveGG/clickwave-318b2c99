@@ -137,11 +137,11 @@ export default function Index() {
               </span>
             </h1>
             
-            <p className="text-xs md:text-sm text-white/60 mb-10 max-w-md mx-auto md:mx-0 leading-relaxed font-mono tracking-wide uppercase border-l border-brand-orange/30 pl-4 py-1">
+            <p className="hidden md:block text-sm text-white/60 mb-10 max-w-md mx-auto md:mx-0 leading-relaxed font-mono tracking-wide uppercase border-l border-brand-orange/30 pl-4 py-1">
               // E nós somos a sua linha de frente. Estratégia implacável, clareza de marca e execução tática para dominar o seu mercado.
             </p>
 
-            <button className="group relative overflow-hidden bg-brand-orange text-white px-8 py-4 rounded-full text-sm md:text-base font-mono uppercase tracking-widest hover:bg-orange-600 transition-all duration-300 shadow-[0_0_40px_rgba(255,87,34,0.2)]">
+            <button className="group relative overflow-hidden bg-brand-orange text-white px-5 py-2.5 md:px-8 md:py-4 rounded-full text-xs md:text-base font-mono uppercase tracking-widest hover:bg-orange-600 transition-all duration-300 shadow-[0_0_40px_rgba(255,87,34,0.2)]">
               <span className="relative z-10 flex items-center gap-2">
                 Começar Agora! <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
               </span>
