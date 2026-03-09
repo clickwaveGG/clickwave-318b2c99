@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowLeft, Eye, EyeOff, User } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import clickwaveLogo from '@/assets/clickwave-logo.png';
 
 export default function Login() {
   const [username, setUsername] = useState('');
