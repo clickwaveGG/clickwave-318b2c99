@@ -132,8 +132,8 @@ export default function Index() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex items-center justify-between py-2 px-4 md:py-3 md:px-6 rounded-full backdrop-blur-md bg-white/10 border border-white/20 w-full shadow-lg"
         >
-          <div className="flex items-center gap-1.5 md:gap-2">
-            <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-brand-orange" />
+          <div className="flex items-center gap-2 md:gap-3">
+            <img src={clickwaveLogo} alt="Clickwave" className="w-7 h-7 md:w-9 md:h-9 object-contain" />
             <span className="font-medium text-sm md:text-lg tracking-wide">Clickwave</span>
           </div>
           
