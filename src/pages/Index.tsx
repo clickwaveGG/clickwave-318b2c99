@@ -348,6 +348,9 @@ export default function Index() {
 
     {/* Arsenal Strategy Section */}
     <ArsenalSection />
+
+    {/* Services Section */}
+    <ServicesSection />
     </div>
   );
 }
