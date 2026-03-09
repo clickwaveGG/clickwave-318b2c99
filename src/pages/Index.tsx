@@ -343,18 +343,10 @@ export default function Index() {
         >
           <Crosshair className="w-12 h-12 text-white/30 stroke-[1]" />
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1, delay: 0.9, ease: "easeOut" }}
-        >
-          <span className="text-xs font-mono uppercase tracking-[0.2em] text-white/50">
-            ~ NOSSO ARSENAL ~
-          </span>
-        </motion.div>
       </section>
+
+    {/* Arsenal Strategy Section */}
+    <ArsenalSection />
     </div>
   );
 }
