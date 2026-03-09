@@ -146,9 +146,9 @@ export default function Index() {
             <a href="#" className="hover:text-white transition-colors">Sobre nós</a>
           </nav>
 
-          <button className="bg-brand-orange text-white px-4 py-1.5 md:px-6 md:py-2.5 rounded-full text-[10px] md:text-sm font-medium flex items-center gap-1.5 md:gap-2 hover:bg-orange-600 transition-colors">
+          <Link to="/login" className="bg-brand-orange text-white px-4 py-1.5 md:px-6 md:py-2.5 rounded-full text-[10px] md:text-sm font-medium flex items-center gap-1.5 md:gap-2 hover:bg-orange-600 transition-colors">
             Login <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
-          </button>
+          </Link>
         </motion.header>
 
         {/* Main Hero Content */}
