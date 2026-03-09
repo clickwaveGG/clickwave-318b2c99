@@ -298,6 +298,9 @@ export default function Index() {
       </div>
     </section>
 
+    {/* Arsenal Strategy Section */}
+    <ArsenalSection />
+
     {/* Team Timeline Section */}
     <section className="bg-brand-black border-t border-white/5 relative z-10">
       <Timeline data={TEAM_DATA} />
