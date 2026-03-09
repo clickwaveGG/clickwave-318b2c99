@@ -56,7 +56,9 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-10">
-          <img src={clickwaveLogo} alt="Clickwave" className="w-14 h-14 object-contain" />
+          <div className="w-20 h-20 rounded-3xl bg-brand-orange/10 border border-brand-orange/20 overflow-hidden">
+            <img src={clickwaveLogo} alt="Clickwave" className="w-full h-full object-cover scale-[1.35]" />
+          </div>
           <span className="font-medium text-lg tracking-wide text-white">Clickwave</span>
         </div>
 
