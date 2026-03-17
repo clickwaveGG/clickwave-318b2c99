@@ -19,6 +19,7 @@ import {
 const menuItems = [
   { title: 'Meu Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Espaço da Equipe', url: '/dashboard/team', icon: UsersRound },
+  { title: 'Calendário Geral', url: '/dashboard/calendar', icon: CalendarDays },
   { title: 'Meus Colegas', url: '/dashboard/colleagues', icon: Users },
 ];
 
