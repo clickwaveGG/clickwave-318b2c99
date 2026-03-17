@@ -43,7 +43,8 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export default function CalendarPage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const isAdmin = role === 'admin';
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -51,13 +52,19 @@ export default function CalendarPage() {
   const [selectedMainDay, setSelectedMainDay] = useState<number | null>(null);
 
   const { data: allTasks = [] } = useQuery({
-    queryKey: ['all-tasks-calendar'],
+    queryKey: ['calendar-tasks', user?.id, isAdmin],
     queryFn: async () => {
-      const { data } = await supabase
+      let query = supabase
         .from('tasks')
         .select('*')
         .not('due_date', 'is', null)
         .order('due_date', { ascending: true });
+
+      if (!isAdmin) {
+        query = query.eq('assigned_to', user!.id);
+      }
+
+      const { data } = await query;
       return (data || []) as Task[];
     },
     enabled: !!user,
