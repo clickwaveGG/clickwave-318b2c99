@@ -134,11 +134,12 @@ export default function CalendarPage() {
       const tasks = tasksByDate[dateStr] || [];
 
       cells.push(
-        <div
+        <button
           key={d}
-          className={`min-h-[120px] border border-white/5 p-2 transition-colors ${
+          onClick={() => setSelectedMainDay(prev => prev === d ? null : d)}
+          className={`min-h-[120px] border border-white/5 p-2 transition-colors text-left ${
             isToday ? 'bg-brand-orange/5 border-brand-orange/20' : 'bg-white/[0.01] hover:bg-white/[0.03]'
-          }`}
+          } ${selectedMainDay === d ? 'ring-1 ring-brand-orange/40' : ''}`}
         >
           <div className="flex items-center justify-between mb-1.5">
             <span className={`text-xs font-mono ${isToday ? 'text-brand-orange font-bold' : 'text-white/40'}`}>
