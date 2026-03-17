@@ -161,6 +161,7 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          capture_date: string | null
           client_name: string | null
           created_at: string
           created_by: string
@@ -168,6 +169,7 @@ export type Database = {
           due_date: string | null
           id: string
           is_team_task: boolean
+          price: number | null
           priority: string
           status: string
           title: string
@@ -175,6 +177,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          capture_date?: string | null
           client_name?: string | null
           created_at?: string
           created_by: string
@@ -182,6 +185,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           is_team_task?: boolean
+          price?: number | null
           priority?: string
           status?: string
           title: string
@@ -189,6 +193,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          capture_date?: string | null
           client_name?: string | null
           created_at?: string
           created_by?: string
@@ -196,6 +201,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           is_team_task?: boolean
+          price?: number | null
           priority?: string
           status?: string
           title?: string
