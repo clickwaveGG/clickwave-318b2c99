@@ -12,6 +12,7 @@ import TeamSpace from "./pages/TeamSpace";
 import CalendarPage from "./pages/CalendarPage";
 import Colleagues from "./pages/Colleagues";
 import AdminPanel from "./pages/AdminPanel";
+import ClientsPage from "./pages/ClientsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
