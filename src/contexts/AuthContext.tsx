@@ -9,6 +9,7 @@ type Profile = {
   full_name: string;
   avatar_url: string | null;
   bio: string | null;
+  position: string | null;
 };
 
 type AuthContextType = {

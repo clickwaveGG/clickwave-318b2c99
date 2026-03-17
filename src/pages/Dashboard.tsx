@@ -74,7 +74,11 @@ export default function Dashboard() {
         <h1 className="text-3xl md:text-4xl font-serif text-white">
           Olá, <span className="italic">{firstName}.</span>
         </h1>
-        <p className="text-white/40 text-sm font-mono mt-2">Seus projetos web & CRM em um só lugar</p>
+        <p className="text-white/40 text-sm font-mono mt-2">
+          {profile?.position
+            ? `${profile.position} — campanhas, métricas e clientes em um só lugar`
+            : 'Seus projetos web & CRM em um só lugar'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
