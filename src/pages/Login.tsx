@@ -80,7 +80,7 @@ export default function Login() {
               Bem-vindo de volta.
             </h1>
             <p className="text-white/40 text-sm">
-              Acesse sua conta com seu e-mail e senha.
+              Acesse sua conta com seu nome de usuário e senha.
             </p>
           </div>
 
@@ -88,13 +88,13 @@ export default function Login() {
           <div className="space-y-4 mb-6">
             <div>
               <label className="block text-[10px] font-mono uppercase tracking-widest text-white/30 mb-2">
-                E-mail
+                Nome de usuário
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="seu.usuario"
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-brand-orange/40 focus:bg-white/[0.06] transition-all duration-300"
                 onKeyDown={(e) => e.key === 'Enter' && handleSignIn()}
               />
