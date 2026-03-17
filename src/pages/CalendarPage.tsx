@@ -12,6 +12,7 @@ type Task = {
   assigned_to: string | null;
   priority: string;
   client_name: string | null;
+  description: string | null;
 };
 
 type Profile = {
