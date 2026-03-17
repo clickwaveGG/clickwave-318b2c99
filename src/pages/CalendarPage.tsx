@@ -12,6 +12,7 @@ type Task = {
   assigned_to: string | null;
   priority: string;
   client_name: string | null;
+  description: string | null;
 };
 
 type Profile = {
@@ -47,6 +48,7 @@ export default function CalendarPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selectedMiniDay, setSelectedMiniDay] = useState<number | null>(null);
+  const [selectedMainDay, setSelectedMainDay] = useState<number | null>(null);
 
   const { data: allTasks = [] } = useQuery({
     queryKey: ['all-tasks-calendar'],
@@ -133,11 +135,12 @@ export default function CalendarPage() {
       const tasks = tasksByDate[dateStr] || [];
 
       cells.push(
-        <div
+        <button
           key={d}
-          className={`min-h-[120px] border border-white/5 p-2 transition-colors ${
+          onClick={() => setSelectedMainDay(prev => prev === d ? null : d)}
+          className={`min-h-[120px] border border-white/5 p-2 transition-colors text-left ${
             isToday ? 'bg-brand-orange/5 border-brand-orange/20' : 'bg-white/[0.01] hover:bg-white/[0.03]'
-          }`}
+          } ${selectedMainDay === d ? 'ring-1 ring-brand-orange/40' : ''}`}
         >
           <div className="flex items-center justify-between mb-1.5">
             <span className={`text-xs font-mono ${isToday ? 'text-brand-orange font-bold' : 'text-white/40'}`}>
@@ -171,7 +174,7 @@ export default function CalendarPage() {
               <p className="text-[9px] text-white/20 font-mono pl-1">+{tasks.length - 3} mais</p>
             )}
           </div>
-        </div>
+        </button>
       );
     }
 
@@ -284,6 +287,79 @@ export default function CalendarPage() {
               {renderMainCalendar()}
             </div>
           </div>
+
+          {/* Selected day detail */}
+          {selectedMainDay !== null && (() => {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedMainDay).padStart(2, '0')}`;
+            const dayTasks = tasksByDate[dateStr] || [];
+
+            return (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-serif text-white">
+                    {selectedMainDay} de {MONTH_NAMES[month]}
+                  </h3>
+                  <button onClick={() => setSelectedMainDay(null)} className="text-white/20 hover:text-white/50 text-sm px-2">✕</button>
+                </div>
+
+                {dayTasks.length === 0 ? (
+                  <p className="text-xs text-white/20 font-mono">Nenhuma tarefa agendada para este dia.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {dayTasks.map(task => {
+                      const assignee = task.assigned_to ? profileMap[task.assigned_to] : null;
+                      const isDone = task.status === 'done';
+                      const priorityLabel = task.priority === 'high' ? 'Alta' : task.priority === 'low' ? 'Baixa' : 'Média';
+
+                      return (
+                        <div
+                          key={task.id}
+                          className={`px-4 py-3 rounded-xl border transition-colors ${
+                            isDone
+                              ? 'border-emerald-500/15 bg-emerald-500/5'
+                              : 'border-white/10 bg-white/[0.03]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                {isDone
+                                  ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                  : <XCircle className="w-4 h-4 text-white/20 shrink-0" />
+                                }
+                                <span className={`text-sm font-medium ${isDone ? 'text-emerald-300/80 line-through' : 'text-white/80'}`}>
+                                  {task.title}
+                                </span>
+                              </div>
+                              {task.description && (
+                                <p className="text-xs text-white/30 mt-1 ml-6 line-clamp-2">{task.description}</p>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border ${PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium}`}>
+                                {priorityLabel}
+                              </span>
+                              {task.client_name && (
+                                <span className="text-[10px] font-mono text-white/25">{task.client_name}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 ml-6">
+                            <span className="text-[10px] font-mono text-white/30">
+                              Responsável: <span className="text-white/50">{assignee || 'Não atribuído'}</span>
+                            </span>
+                            <span className={`text-[10px] font-mono ${isDone ? 'text-emerald-400/60' : 'text-yellow-400/60'}`}>
+                              • {isDone ? 'Concluída' : task.status === 'in_progress' ? 'Em andamento' : 'Pendente'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Sidebar: Mini Calendar + Stats */}
