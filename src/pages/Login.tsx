@@ -14,13 +14,14 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSignIn = async () => {
-    if (!email || !password) {
+    if (!username || !password) {
       setError('Preencha todos os campos.');
       return;
     }
     setError('');
     setLoading(true);
 
+    const email = `${username.toLowerCase().trim()}@clickwave.com`;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
