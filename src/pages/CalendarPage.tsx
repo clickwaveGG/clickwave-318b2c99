@@ -258,7 +258,7 @@ export default function CalendarPage() {
             Calendário <span className="italic">Geral</span>
           </h1>
           <p className="text-white/40 text-sm font-mono mt-2">
-            Visão completa de todas as entregas da equipe
+            {isAdmin ? 'Visão completa de todas as entregas da equipe' : 'Suas entregas e prazos'}
           </p>
         </div>
       </div>
