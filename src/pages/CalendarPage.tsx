@@ -47,6 +47,7 @@ export default function CalendarPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selectedMiniDay, setSelectedMiniDay] = useState<number | null>(null);
+  const [selectedMainDay, setSelectedMainDay] = useState<number | null>(null);
 
   const { data: allTasks = [] } = useQuery({
     queryKey: ['all-tasks-calendar'],
