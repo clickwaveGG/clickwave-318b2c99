@@ -1,0 +1,1 @@
+UPDATE profiles SET full_name = 'Leonardo Silva', bio = 'Desenvolvedor Web & CRM — Crio sites de alta conversão e implanto sistemas de gestão para empresas.' WHERE user_id = '064b66b1-ea4b-4441-b63b-75d3bf749c72';
