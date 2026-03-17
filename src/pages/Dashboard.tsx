@@ -80,7 +80,7 @@ export default function Dashboard() {
         <h1 className="text-3xl md:text-4xl font-serif text-white">
           Olá, <span className="italic">{firstName}.</span>
         </h1>
-        <p className="text-white/40 text-sm font-mono mt-2">Seu painel de produtividade</p>
+        <p className="text-white/40 text-sm font-mono mt-2">Seus projetos web & CRM em um só lugar</p>
       </div>
 
       {/* Stats */}
