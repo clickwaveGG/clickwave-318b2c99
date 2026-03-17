@@ -89,6 +89,7 @@ export default function Dashboard() {
       </div>
 
       <KanbanBoard tasks={tasks} />
+      {profile?.position === 'Gestor de Tráfego' && <WeeklyTasksSection />}
       <ObjectivesSection objectives={objectives} />
       <PendingItemsSection items={pendingItems} />
     </div>
