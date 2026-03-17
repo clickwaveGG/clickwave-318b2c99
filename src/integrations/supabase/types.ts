@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       objectives: {
         Row: {
           created_at: string
