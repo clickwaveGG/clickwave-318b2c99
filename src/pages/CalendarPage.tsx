@@ -46,6 +46,7 @@ export default function CalendarPage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
+  const [selectedMiniDay, setSelectedMiniDay] = useState<number | null>(null);
 
   const { data: allTasks = [] } = useQuery({
     queryKey: ['all-tasks-calendar'],
@@ -202,11 +203,12 @@ export default function CalendarPage() {
       else if (status === false) dotClass = 'bg-red-500';
 
       cells.push(
-        <div
+        <button
           key={d}
+          onClick={() => status !== undefined ? setSelectedMiniDay(prev => prev === d ? null : d) : undefined}
           className={`relative flex flex-col items-center justify-center aspect-square rounded-lg transition-colors ${
-            isToday ? 'bg-brand-orange/15 border border-brand-orange/30' : 'hover:bg-white/5'
-          }`}
+            isToday ? 'bg-brand-orange/15 border border-brand-orange/30' : status !== undefined ? 'hover:bg-white/5 cursor-pointer' : ''
+          } ${selectedMiniDay === d ? 'ring-1 ring-brand-orange/50' : ''}`}
         >
           <span className={`text-xs font-mono ${
             isToday ? 'text-brand-orange font-bold' : status === true ? 'text-emerald-400' : status === false ? 'text-red-400' : 'text-white/40'
@@ -216,7 +218,7 @@ export default function CalendarPage() {
           {dotClass && (
             <div className={`w-1.5 h-1.5 rounded-full ${dotClass} mt-0.5`} />
           )}
-        </div>
+        </button>
       );
     }
 
@@ -307,6 +309,61 @@ export default function CalendarPage() {
               {renderMiniCalendar()}
             </div>
           </div>
+
+          {/* Day detail panel */}
+          {selectedMiniDay !== null && (() => {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedMiniDay).padStart(2, '0')}`;
+            const dayTasks = tasksByDate[dateStr] || [];
+            const completed = dayTasks.filter(t => t.status === 'done');
+            const overdue = dayTasks.filter(t => t.status !== 'done');
+
+            return (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-serif text-white">
+                    Dia {selectedMiniDay}
+                  </h3>
+                  <button onClick={() => setSelectedMiniDay(null)} className="text-white/20 hover:text-white/50 text-xs">✕</button>
+                </div>
+
+                {completed.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-mono uppercase text-emerald-400/70 tracking-wider flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3 h-3" /> Concluídas
+                    </p>
+                    {completed.map(t => (
+                      <div key={t.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                        <span className="text-xs text-emerald-300/80 truncate flex-1">{t.title}</span>
+                        <span className="text-[9px] text-white/25 font-mono shrink-0">
+                          {t.assigned_to ? profileMap[t.assigned_to]?.split(' ')[0] : '?'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {overdue.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-mono uppercase text-red-400/70 tracking-wider flex items-center gap-1.5">
+                      <XCircle className="w-3 h-3" /> Atrasadas
+                    </p>
+                    {overdue.map(t => (
+                      <div key={t.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-red-500/5 border border-red-500/10">
+                        <span className="text-xs text-red-300/80 truncate flex-1">{t.title}</span>
+                        <span className="text-[9px] text-white/25 font-mono shrink-0">
+                          {t.assigned_to ? profileMap[t.assigned_to]?.split(' ')[0] : '?'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {dayTasks.length === 0 && (
+                  <p className="text-xs text-white/20 font-mono">Nenhuma tarefa neste dia.</p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Stats */}
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
