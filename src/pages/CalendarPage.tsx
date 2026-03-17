@@ -203,11 +203,12 @@ export default function CalendarPage() {
       else if (status === false) dotClass = 'bg-red-500';
 
       cells.push(
-        <div
+        <button
           key={d}
+          onClick={() => status !== undefined ? setSelectedMiniDay(prev => prev === d ? null : d) : undefined}
           className={`relative flex flex-col items-center justify-center aspect-square rounded-lg transition-colors ${
-            isToday ? 'bg-brand-orange/15 border border-brand-orange/30' : 'hover:bg-white/5'
-          }`}
+            isToday ? 'bg-brand-orange/15 border border-brand-orange/30' : status !== undefined ? 'hover:bg-white/5 cursor-pointer' : ''
+          } ${selectedMiniDay === d ? 'ring-1 ring-brand-orange/50' : ''}`}
         >
           <span className={`text-xs font-mono ${
             isToday ? 'text-brand-orange font-bold' : status === true ? 'text-emerald-400' : status === false ? 'text-red-400' : 'text-white/40'
@@ -217,7 +218,7 @@ export default function CalendarPage() {
           {dotClass && (
             <div className={`w-1.5 h-1.5 rounded-full ${dotClass} mt-0.5`} />
           )}
-        </div>
+        </button>
       );
     }
 
