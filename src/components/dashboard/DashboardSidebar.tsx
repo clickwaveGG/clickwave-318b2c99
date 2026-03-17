@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, UsersRound, Shield, LogOut, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, UsersRound, Shield, LogOut, ChevronLeft, ChevronRight, CalendarDays, Building2 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import clickwaveLogo from '@/assets/clickwave-logo.png';
@@ -21,6 +21,7 @@ const menuItems = [
   { title: 'Espaço da Equipe', url: '/dashboard/team', icon: UsersRound },
   { title: 'Calendário Geral', url: '/dashboard/calendar', icon: CalendarDays },
   { title: 'Meus Colegas', url: '/dashboard/colleagues', icon: Users },
+  { title: 'Clientes', url: '/dashboard/clients', icon: Building2 },
 ];
 
 const adminItems = [
