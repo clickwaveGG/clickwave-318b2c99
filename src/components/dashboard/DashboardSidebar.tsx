@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, UsersRound, Shield, LogOut, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, UsersRound, Shield, LogOut, ChevronLeft, ChevronRight, CalendarDays, Building2 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import clickwaveLogo from '@/assets/clickwave-logo.png';
