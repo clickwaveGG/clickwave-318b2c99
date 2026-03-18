@@ -148,8 +148,8 @@ export default function ClientsPage() {
         if (sErr) throw sErr;
       }
 
-      // Optionally create tasks from services
-      if (createTasksOnAdd && validServices.length > 0) {
+      // Automatically create tasks from services
+      if (validServices.length > 0) {
         const taskInserts = validServices.map(s => ({
           title: `${s.service_name} — ${newClient.name.trim()}`,
           client_name: newClient.name.trim(),
