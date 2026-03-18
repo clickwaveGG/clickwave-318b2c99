@@ -143,17 +143,26 @@ export default function ClientsPage() {
         if (sErr) throw sErr;
       }
 
-      // Automatically create tasks from services
+      // Automatically create tasks from services (N tasks if quantity_per_month is set)
       if (validServices.length > 0) {
-        const taskInserts = validServices.map(s => ({
-          title: `${s.service_name} — ${newClient.name.trim()}`,
-          client_name: newClient.name.trim(),
-          assigned_to: s.responsible_id || user!.id,
-          created_by: user!.id,
-          price: s.price ? parseFloat(s.price) : null,
-          status: 'todo' as const,
-          priority: 'medium' as const,
-        }));
+        const taskInserts: any[] = [];
+        validServices.forEach(s => {
+          const qty = s.quantity_per_month ? parseInt(s.quantity_per_month) : 1;
+          const count = qty > 0 ? qty : 1;
+          for (let i = 0; i < count; i++) {
+            taskInserts.push({
+              title: count > 1
+                ? `${s.service_name} ${i + 1}/${count} — ${newClient.name.trim()}`
+                : `${s.service_name} — ${newClient.name.trim()}`,
+              client_name: newClient.name.trim(),
+              assigned_to: s.responsible_id || user!.id,
+              created_by: user!.id,
+              price: s.price ? parseFloat(s.price) / count : null,
+              status: 'todo' as const,
+              priority: 'medium' as const,
+            });
+          }
+        });
         await supabase.from('tasks').insert(taskInserts);
       }
     },
@@ -223,16 +232,25 @@ export default function ClientsPage() {
       );
       if (error) throw error;
 
-      // Automatically create tasks for responsible users
-      const taskInserts = valid.map(s => ({
-        title: `${s.service_name.trim()} — ${clientName}`,
-        client_name: clientName,
-        assigned_to: s.responsible_id || user!.id,
-        created_by: user!.id,
-        price: s.price ? parseFloat(s.price) : null,
-        status: 'todo' as const,
-        priority: 'medium' as const,
-      }));
+      // Automatically create tasks for responsible users (N tasks if quantity_per_month is set)
+      const taskInserts: any[] = [];
+      valid.forEach(s => {
+        const qty = s.quantity_per_month ? parseInt(s.quantity_per_month) : 1;
+        const count = qty > 0 ? qty : 1;
+        for (let i = 0; i < count; i++) {
+          taskInserts.push({
+            title: count > 1
+              ? `${s.service_name.trim()} ${i + 1}/${count} — ${clientName}`
+              : `${s.service_name.trim()} — ${clientName}`,
+            client_name: clientName,
+            assigned_to: s.responsible_id || user!.id,
+            created_by: user!.id,
+            price: s.price ? parseFloat(s.price) / count : null,
+            status: 'todo' as const,
+            priority: 'medium' as const,
+          });
+        }
+      });
       await supabase.from('tasks').insert(taskInserts);
     },
     onSuccess: () => {
@@ -242,6 +260,19 @@ export default function ClientsPage() {
       toast.success('Serviços adicionados!');
     },
     onError: (e: any) => toast.error(e.message || 'Erro ao adicionar serviços'),
+  });
+
+  const updateTaskDateMutation = useMutation({
+    mutationFn: async ({ taskId, field, value }: { taskId: string; field: 'due_date' | 'capture_date'; value: string }) => {
+      const { error } = await supabase.from('tasks').update({ [field]: value || null }).eq('id', taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      queryClient.invalidateQueries({ queryKey: ['calendar-tasks'] });
+      toast.success('Data atualizada!');
+    },
+    onError: () => toast.error('Erro ao atualizar data'),
   });
 
   const updateTaskRow = (i: number, field: keyof NewTaskRow, value: string) => {
@@ -494,20 +525,48 @@ export default function ClientsPage() {
                 <div className="space-y-2">
                   {clientTasks.map((task: any) => {
                     const assignee = profiles.find((p: any) => p.user_id === task.assigned_to);
+                    const isVideoTask = task.title?.toLowerCase().includes('vídeo') || task.title?.toLowerCase().includes('video');
                     return (
-                      <div key={task.id} className={`rounded-xl border border-white/10 bg-white/[0.02] p-3 flex items-start gap-3 ${task.status === 'done' ? 'opacity-50' : ''}`}>
-                        {task.status === 'done' ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> : <Clock className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm text-white ${task.status === 'done' ? 'line-through' : ''}`}>{task.title}</p>
-                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${task.priority === 'high' ? 'border-red-500/30 text-red-400 bg-red-500/10' : task.priority === 'medium' ? 'border-orange-500/30 text-orange-400 bg-orange-500/10' : 'border-white/10 text-white/30'}`}>
-                              {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MÉDIA' : 'BAIXA'}
-                            </span>
-                            {assignee && <span className="text-[10px] font-mono text-white/25">👤 {assignee.full_name}</span>}
-                            {task.due_date && <span className="text-[10px] font-mono text-white/20">📅 {new Date(task.due_date).toLocaleDateString('pt-BR')}</span>}
-                            {task.capture_date && <span className="text-[10px] font-mono text-purple-400/60">🎬 {new Date(task.capture_date).toLocaleDateString('pt-BR')}</span>}
-                            {task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                      <div key={task.id} className={`rounded-xl border border-white/10 bg-white/[0.02] p-4 ${task.status === 'done' ? 'opacity-50' : ''}`}>
+                        <div className="flex items-start gap-3">
+                          {task.status === 'done' ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> : <Clock className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />}
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm text-white ${task.status === 'done' ? 'line-through' : ''}`}>{task.title}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${task.priority === 'high' ? 'border-red-500/30 text-red-400 bg-red-500/10' : task.priority === 'medium' ? 'border-orange-500/30 text-orange-400 bg-orange-500/10' : 'border-white/10 text-white/30'}`}>
+                                {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MÉDIA' : 'BAIXA'}
+                              </span>
+                              {assignee && <span className="text-[10px] font-mono text-white/25">👤 {assignee.full_name}</span>}
+                              {task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                            </div>
                           </div>
+                        </div>
+                        {/* Inline date editing */}
+                        <div className={`grid gap-2 mt-3 ml-7 ${isVideoTask ? 'grid-cols-2' : 'grid-cols-1 max-w-[200px]'}`}>
+                          <div>
+                            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1">
+                              <CalendarDays className="w-3 h-3" /> Data de Entrega
+                            </label>
+                            <input
+                              type="date"
+                              value={task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : ''}
+                              onChange={e => updateTaskDateMutation.mutate({ taskId: task.id, field: 'due_date', value: e.target.value })}
+                              className={`w-full ${inputClass}`}
+                            />
+                          </div>
+                          {isVideoTask && (
+                            <div>
+                              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1">
+                                <Video className="w-3 h-3" /> Data de Gravação
+                              </label>
+                              <input
+                                type="date"
+                                value={task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : ''}
+                                onChange={e => updateTaskDateMutation.mutate({ taskId: task.id, field: 'capture_date', value: e.target.value })}
+                                className={`w-full ${inputClass}`}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
