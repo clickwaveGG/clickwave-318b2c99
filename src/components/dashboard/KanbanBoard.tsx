@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, X, Pencil, Check, FileText } from 'lucide-react';
+import { Plus, Trash2, X, Pencil, Check, FileText, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { TaskDetailModal } from './TaskDetailModal';
 
