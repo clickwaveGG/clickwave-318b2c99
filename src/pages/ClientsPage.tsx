@@ -275,6 +275,7 @@ export default function ClientsPage() {
     onError: () => toast.error('Erro ao atualizar data'),
   });
 
+  const updateTaskRow = (i: number, field: keyof NewTaskRow, value: string) => {
     setTaskRows(prev => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
   };
 
