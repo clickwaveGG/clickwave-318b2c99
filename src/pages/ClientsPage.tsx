@@ -678,6 +678,11 @@ export default function ClientsPage() {
                   profiles={profiles}
                   inputClass={inputClass}
                   onUpdateDate={(taskId, field, value) => updateTaskDateMutation.mutate({ taskId, field, value })}
+                  onDeleteTask={async (taskId) => {
+                    await supabase.from('tasks').delete().eq('id', taskId);
+                    invalidateAll();
+                    toast.success('Tarefa removida!');
+                  }}
                 />
               )}
             </div>
