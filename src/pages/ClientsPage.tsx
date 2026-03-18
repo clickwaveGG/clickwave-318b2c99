@@ -438,7 +438,25 @@ export default function ClientsPage() {
     onError: () => toast.error('Erro ao remover serviço'),
   });
 
-  const addServicesMutation = useMutation({
+  const updateClientMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingClient || !editForm.name.trim()) throw new Error('Nome obrigatório');
+      const { error } = await supabase.from('clients').update({
+        name: editForm.name.trim(),
+        size: editForm.size,
+        is_recurring: editForm.is_recurring,
+        notes: editForm.notes || null,
+        contact_info: editForm.contact_info || null,
+      }).eq('id', editingClient);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setEditingClient(null);
+      toast.success('Cliente atualizado!');
+    },
+    onError: (e: any) => toast.error(e.message || 'Erro ao atualizar cliente'),
+  });
     mutationFn: async ({ clientId, clientName, services }: { clientId: string; clientName: string; services: ServiceRow[] }) => {
       const valid = services.filter(s => s.service_name.trim());
       if (valid.length === 0) throw new Error('Adicione ao menos um serviço');
