@@ -24,6 +24,17 @@ const SERVICE_PRESETS = [
   'Automações / Chatbot', 'Gestão de Redes Sociais', 'Branding', 'Outro',
 ];
 
+// Mapeamento de serviço → responsável padrão por user_id
+const SERVICE_DEFAULT_RESPONSIBLE: Record<string, string> = {
+  'Vídeos': '46edee23-fcc6-47c6-88a7-9ea7d9ca60aa',                // João Victor
+  'Site / Landing Page': '064b66b1-ea4b-4441-b63b-75d3bf749c72',   // Leonardo
+  'Tráfego Pago': '6aa5383c-cb63-46e4-bd03-478d0c1456a3',          // Pedro Antônio
+  'Posts / Design': 'db42a91a-2e8c-4931-9ded-dcb99114447c',         // Willer
+  'Branding': 'db42a91a-2e8c-4931-9ded-dcb99114447c',              // Willer
+  'Automações / Chatbot': '8f6ebe49-fd36-414c-bb50-7b51dcaf684b',  // Kauan Cabral
+  'Gestão de Redes Sociais': '064b66b1-ea4b-4441-b63b-75d3bf749c72', // Leonardo
+};
+
 interface NewTaskRow {
   title: string;
   description: string;
