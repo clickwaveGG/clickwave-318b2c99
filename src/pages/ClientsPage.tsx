@@ -219,8 +219,6 @@ export default function ClientsPage() {
           responsible_id: s.responsible_id || null,
           price: s.price ? parseFloat(s.price) : 0,
           quantity_per_month: s.quantity_per_month ? parseInt(s.quantity_per_month) : null,
-          due_date: s.due_date || null,
-          capture_date: s.capture_date || null,
         }))
       );
       if (error) throw error;
@@ -231,8 +229,6 @@ export default function ClientsPage() {
         client_name: clientName,
         assigned_to: s.responsible_id || user!.id,
         created_by: user!.id,
-        due_date: s.due_date || null,
-        capture_date: s.capture_date || null,
         price: s.price ? parseFloat(s.price) : null,
         status: 'todo' as const,
         priority: 'medium' as const,
