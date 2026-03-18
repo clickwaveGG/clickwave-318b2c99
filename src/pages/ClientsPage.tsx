@@ -503,7 +503,18 @@ export default function ClientsPage() {
     onError: () => toast.error('Erro ao remover serviço'),
   });
 
-  const updateClientMutation = useMutation({
+  const toggleServiceCompletedMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
+      const { error } = await supabase.from('client_services').update({ completed } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Status do serviço atualizado!');
+    },
+  });
+
+
     mutationFn: async () => {
       if (!editingClient || !editForm.name.trim()) throw new Error('Nome obrigatório');
       const { error } = await supabase.from('clients').update({
