@@ -450,7 +450,7 @@ export default function ClientsPage() {
               ? `${s.service_name.trim()} ${i + 1}/${count} — ${clientName}`
               : `${s.service_name.trim()} — ${clientName}`,
             client_name: clientName,
-            assigned_to: s.responsible_id || user!.id,
+            assigned_to: s.responsible_id || SERVICE_DEFAULT_RESPONSIBLE[s.service_name.trim()] || user!.id,
             created_by: user!.id,
             price: s.price ? parseFloat(s.price) / count : null,
             status: 'todo' as const,
