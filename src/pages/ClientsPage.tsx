@@ -24,6 +24,11 @@ const SERVICE_PRESETS = [
   'Automações / Chatbot', 'Gestão de Redes Sociais', 'Branding', 'Outro',
 ];
 
+const WEEKDAY_LABELS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+const isTrafficTask = (title: string) =>
+  title.toLowerCase().includes('tráfego') || title.toLowerCase().includes('trafego');
+
 // Mapeamento de serviço → responsável padrão por user_id
 const SERVICE_DEFAULT_RESPONSIBLE: Record<string, string> = {
   'Vídeos': '46edee23-fcc6-47c6-88a7-9ea7d9ca60aa',                // João Victor
