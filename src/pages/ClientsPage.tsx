@@ -263,6 +263,13 @@ export default function ClientsPage() {
           <span className={`text-[9px] font-mono px-2 py-0.5 rounded border shrink-0 ${sizeConf.color}`}>
             {sizeConf.label.toUpperCase()}
           </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); setDeleteClientId(client.id); }}
+            className="text-white/15 hover:text-red-400 transition-colors shrink-0"
+            title="Remover cliente"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
           {totalTasks > 0 && (
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
