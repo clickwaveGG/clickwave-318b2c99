@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Building2, Plus, ChevronDown, ChevronRight, CheckCircle2, Clock, X,
-  ListTodo, Trash2, DollarSign, Video, CalendarDays, RefreshCw, Package, AlertTriangle, Layers, Pencil
+  ListTodo, Trash2, DollarSign, Video, CalendarDays, RefreshCw, Package, AlertTriangle, Layers, Pencil, Radio
 } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -23,6 +23,11 @@ const SERVICE_PRESETS = [
   'Vídeos', 'Posts / Design', 'Tráfego Pago', 'Site / Landing Page',
   'Automações / Chatbot', 'Gestão de Redes Sociais', 'Branding', 'Outro',
 ];
+
+const WEEKDAY_LABELS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+const isTrafficTask = (title: string) =>
+  title.toLowerCase().includes('tráfego') || title.toLowerCase().includes('trafego');
 
 // Mapeamento de serviço → responsável padrão por user_id
 const SERVICE_DEFAULT_RESPONSIBLE: Record<string, string> = {
@@ -80,20 +85,35 @@ interface SingleTaskRowProps {
 function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
   const assignee = profiles.find((p: any) => p.user_id === task.assigned_to);
   const isVideoTask = task.title?.toLowerCase().includes('vídeo') || task.title?.toLowerCase().includes('video');
+  const isTraffic = isTrafficTask(task.title || '');
 
   const [localDueDate, setLocalDueDate] = useState(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
   const [localCaptureDate, setLocalCaptureDate] = useState(task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '');
+  const [localWeekday, setLocalWeekday] = useState<string>(task.weekday != null ? String(task.weekday) : '');
 
   const origDueDate = task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '';
   const origCaptureDate = task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '';
-  const hasChanges = localDueDate !== origDueDate || localCaptureDate !== origCaptureDate;
+  const origWeekday = task.weekday != null ? String(task.weekday) : '';
+  const hasChanges = isTraffic
+    ? localWeekday !== origWeekday
+    : (localDueDate !== origDueDate || localCaptureDate !== origCaptureDate);
 
   useEffect(() => {
     setLocalDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
     setLocalCaptureDate(task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '');
-  }, [task.due_date, task.capture_date]);
+    setLocalWeekday(task.weekday != null ? String(task.weekday) : '');
+  }, [task.due_date, task.capture_date, task.weekday]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (isTraffic) {
+      // Save weekday on the task
+      const { error } = await supabase.from('tasks').update({ weekday: localWeekday ? parseInt(localWeekday) : null }).eq('id', task.id);
+      if (error) { toast.error('Erro ao salvar'); return; }
+      toast.success('Dia da semana atualizado!');
+      // Trigger invalidation through parent
+      onUpdateDate(task.id, 'due_date', localDueDate); // just to invalidate
+      return;
+    }
     if (localDueDate !== origDueDate) onUpdateDate(task.id, 'due_date', localDueDate);
     if (localCaptureDate !== origCaptureDate) onUpdateDate(task.id, 'capture_date', localCaptureDate);
   };
@@ -110,6 +130,11 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
             </span>
             {assignee && <span className="text-[10px] font-mono text-white/25">👤 {assignee.full_name}</span>}
             {isAdmin && task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+            {isTraffic && task.weekday != null && (
+              <span className="text-[10px] font-mono text-cyan-400/60 flex items-center gap-1">
+                <Radio className="w-3 h-3" /> {WEEKDAY_LABELS[task.weekday]}
+              </span>
+            )}
           </div>
         </div>
         <button
@@ -121,30 +146,50 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
         </button>
       </div>
       <div className={`flex items-end gap-2 mt-3 ml-7`}>
-        <div className={`grid gap-2 flex-1 ${isVideoTask ? 'grid-cols-2' : 'grid-cols-1 max-w-[200px]'}`}>
-          <div>
-            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1">
-              <CalendarDays className="w-3 h-3" /> Data de Entrega
-            </label>
-            <input
-              type="date"
-              value={localDueDate}
-              onChange={e => setLocalDueDate(e.target.value)}
-              className={`w-full ${inputClass}`}
-            />
-          </div>
-          {isVideoTask && (
+        <div className={`grid gap-2 flex-1 ${isTraffic ? 'grid-cols-1 max-w-[200px]' : isVideoTask ? 'grid-cols-2' : 'grid-cols-1 max-w-[200px]'}`}>
+          {isTraffic ? (
             <div>
-              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1">
-                <Video className="w-3 h-3" /> Data de Gravação
+              <label className="text-[9px] font-mono text-cyan-400/40 uppercase mb-1 flex items-center gap-1">
+                <Radio className="w-3 h-3" /> Dia da Semana
               </label>
-              <input
-                type="date"
-                value={localCaptureDate}
-                onChange={e => setLocalCaptureDate(e.target.value)}
+              <select
+                value={localWeekday}
+                onChange={e => setLocalWeekday(e.target.value)}
                 className={`w-full ${inputClass}`}
-              />
+              >
+                <option value="" className="bg-brand-black">Selecionar...</option>
+                {WEEKDAY_LABELS.map((label, i) => (
+                  <option key={i} value={String(i)} className="bg-brand-black">{label}</option>
+                ))}
+              </select>
             </div>
+          ) : (
+            <>
+              <div>
+                <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1">
+                  <CalendarDays className="w-3 h-3" /> Data de Entrega
+                </label>
+                <input
+                  type="date"
+                  value={localDueDate}
+                  onChange={e => setLocalDueDate(e.target.value)}
+                  className={`w-full ${inputClass}`}
+                />
+              </div>
+              {isVideoTask && (
+                <div>
+                  <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1">
+                    <Video className="w-3 h-3" /> Data de Gravação
+                  </label>
+                  <input
+                    type="date"
+                    value={localCaptureDate}
+                    onChange={e => setLocalCaptureDate(e.target.value)}
+                    className={`w-full ${inputClass}`}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
         {hasChanges && (
@@ -754,6 +799,7 @@ export default function ClientsPage() {
                               )}
                               {s.due_date && <span className="text-[10px] font-mono text-white/20">📅 {new Date(s.due_date).toLocaleDateString('pt-BR')}</span>}
                               {s.capture_date && <span className="text-[10px] font-mono text-purple-400/60">🎬 {new Date(s.capture_date).toLocaleDateString('pt-BR')}</span>}
+                              {s.weekday != null && <span className="text-[10px] font-mono text-cyan-400/60">📻 {WEEKDAY_LABELS[s.weekday]}</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
