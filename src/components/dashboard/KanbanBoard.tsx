@@ -91,7 +91,12 @@ export function KanbanBoard({ tasks }: { tasks: Task[] }) {
             <div key={col.key} className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 min-h-[200px]">
               <div className="flex items-center gap-2 mb-4">
                 <div className={`w-2 h-2 rounded-full ${col.dot}`} />
-                <span className={`text-xs font-mono uppercase tracking-wider ${col.color}`}>{col.label}</span>
+                <button
+                  onClick={() => navigate(`/dashboard/tasks?status=${col.key}`)}
+                  className={`text-xs font-mono uppercase tracking-wider ${col.color} hover:underline transition-colors`}
+                >
+                  {col.label}
+                </button>
                 <span className="text-white/20 text-xs ml-auto">
                   {isPendingCol ? pendingVideoTasks.length : colTasks.length}
                 </span>
