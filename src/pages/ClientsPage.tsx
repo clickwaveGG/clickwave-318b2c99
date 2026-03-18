@@ -841,20 +841,31 @@ export default function ClientsPage() {
                                 R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
                             )}
-                            <button
-                              onClick={() => {
-                                if (showingForm) {
-                                  setAddTaskForService(null);
-                                } else {
-                                  setAddTaskForService(s.id);
-                                  setServiceTaskRows([{ title: '', due_date: '', capture_date: '' }]);
-                                }
-                              }}
-                              className="text-white/20 hover:text-brand-orange transition-colors opacity-0 group-hover/svc:opacity-100"
-                              title="Adicionar tarefa para este serviço"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
+                            {isAdmin && (
+                              <button
+                                onClick={() => toggleServiceCompletedMutation.mutate({ id: s.id, completed: !s.completed })}
+                                className={`transition-colors opacity-0 group-hover/svc:opacity-100 ${s.completed ? 'text-emerald-400 hover:text-white/40' : 'text-white/20 hover:text-emerald-400'}`}
+                                title={s.completed ? 'Marcar como ativo' : 'Marcar como concluído'}
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {!s.completed && (
+                              <button
+                                onClick={() => {
+                                  if (showingForm) {
+                                    setAddTaskForService(null);
+                                  } else {
+                                    setAddTaskForService(s.id);
+                                    setServiceTaskRows([{ title: '', due_date: '', capture_date: '' }]);
+                                  }
+                                }}
+                                className="text-white/20 hover:text-brand-orange transition-colors opacity-0 group-hover/svc:opacity-100"
+                                title="Adicionar tarefa para este serviço"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             <button
                               onClick={() => deleteServiceMutation.mutate(s.id)}
                               className="text-white/15 hover:text-red-400 transition-colors opacity-0 group-hover/svc:opacity-100"
