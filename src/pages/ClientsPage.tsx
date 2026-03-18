@@ -799,6 +799,7 @@ export default function ClientsPage() {
                               )}
                               {s.due_date && <span className="text-[10px] font-mono text-white/20">📅 {new Date(s.due_date).toLocaleDateString('pt-BR')}</span>}
                               {s.capture_date && <span className="text-[10px] font-mono text-purple-400/60">🎬 {new Date(s.capture_date).toLocaleDateString('pt-BR')}</span>}
+                              {s.weekday != null && <span className="text-[10px] font-mono text-cyan-400/60">📻 {WEEKDAY_LABELS[s.weekday]}</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
