@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -40,6 +41,7 @@ const PRIORITIES = [
 
 export function KanbanBoard({ tasks }: { tasks: Task[] }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
@@ -89,7 +91,12 @@ export function KanbanBoard({ tasks }: { tasks: Task[] }) {
             <div key={col.key} className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 min-h-[200px]">
               <div className="flex items-center gap-2 mb-4">
                 <div className={`w-2 h-2 rounded-full ${col.dot}`} />
-                <span className={`text-xs font-mono uppercase tracking-wider ${col.color}`}>{col.label}</span>
+                <button
+                  onClick={() => navigate(`/dashboard/tasks?status=${col.key}`)}
+                  className={`text-xs font-mono uppercase tracking-wider ${col.color} hover:underline transition-colors`}
+                >
+                  {col.label}
+                </button>
                 <span className="text-white/20 text-xs ml-auto">
                   {isPendingCol ? pendingVideoTasks.length : colTasks.length}
                 </span>
@@ -218,9 +225,12 @@ export function KanbanBoard({ tasks }: { tasks: Task[] }) {
                       </div>
                     ))}
                     {hiddenCount > 0 && (
-                      <p className="text-[10px] font-mono text-white/20 text-center pt-1">
+                      <button
+                        onClick={() => navigate(`/dashboard/tasks?status=${col.key}`)}
+                        className="text-[10px] font-mono text-white/20 text-center pt-1 w-full hover:text-brand-orange transition-colors"
+                      >
                         +{hiddenCount} {hiddenCount === 1 ? 'tarefa' : 'tarefas'}
-                      </p>
+                      </button>
                     )}
                   </>
                 )}

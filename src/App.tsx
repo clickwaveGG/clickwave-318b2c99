@@ -13,6 +13,7 @@ import CalendarPage from "./pages/CalendarPage";
 import Colleagues from "./pages/Colleagues";
 import AdminPanel from "./pages/AdminPanel";
 import ClientsPage from "./pages/ClientsPage";
+import TasksListPage from "./pages/TasksListPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/dashboard/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
             <Route path="/dashboard/colleagues" element={<ProtectedRoute><Colleagues /></ProtectedRoute>} />
             <Route path="/dashboard/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+            <Route path="/dashboard/tasks" element={<ProtectedRoute><TasksListPage /></ProtectedRoute>} />
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
