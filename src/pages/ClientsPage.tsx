@@ -43,13 +43,10 @@ interface ServiceRow {
   responsible_id: string;
   price: string;
   quantity_per_month: string;
-  due_date: string;
-  capture_date: string;
 }
 
 const emptyService = (): ServiceRow => ({
   service_name: '', responsible_id: '', price: '', quantity_per_month: '',
-  due_date: '', capture_date: '',
 });
 
 export default function ClientsPage() {
@@ -141,8 +138,6 @@ export default function ClientsPage() {
             responsible_id: s.responsible_id || null,
             price: s.price ? parseFloat(s.price) : 0,
             quantity_per_month: s.quantity_per_month ? parseInt(s.quantity_per_month) : null,
-            due_date: s.due_date || null,
-            capture_date: s.capture_date || null,
           }))
         );
         if (sErr) throw sErr;
@@ -155,8 +150,6 @@ export default function ClientsPage() {
           client_name: newClient.name.trim(),
           assigned_to: s.responsible_id || user!.id,
           created_by: user!.id,
-          due_date: s.due_date || null,
-          capture_date: s.capture_date || null,
           price: s.price ? parseFloat(s.price) : null,
           status: 'todo' as const,
           priority: 'medium' as const,
@@ -226,8 +219,6 @@ export default function ClientsPage() {
           responsible_id: s.responsible_id || null,
           price: s.price ? parseFloat(s.price) : 0,
           quantity_per_month: s.quantity_per_month ? parseInt(s.quantity_per_month) : null,
-          due_date: s.due_date || null,
-          capture_date: s.capture_date || null,
         }))
       );
       if (error) throw error;
@@ -238,8 +229,6 @@ export default function ClientsPage() {
         client_name: clientName,
         assigned_to: s.responsible_id || user!.id,
         created_by: user!.id,
-        due_date: s.due_date || null,
-        capture_date: s.capture_date || null,
         price: s.price ? parseFloat(s.price) : null,
         status: 'todo' as const,
         priority: 'medium' as const,
@@ -369,7 +358,7 @@ export default function ClientsPage() {
                         </select>
                         <button onClick={() => setAddServiceRows(prev => prev.length === 1 ? [emptyService()] : prev.filter((_, i) => i !== idx))} className="text-white/15 hover:text-red-400 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         <div>
                           <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
                           <select value={s.responsible_id} onChange={e => updateAddServiceRow(idx, 'responsible_id', e.target.value)} className={`w-full ${inputClass}`}>
@@ -385,16 +374,6 @@ export default function ClientsPage() {
                           <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
                           <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateAddServiceRow(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
                         </div>
-                        <div>
-                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Entrega</label>
-                          <input type="date" value={s.due_date} onChange={e => updateAddServiceRow(idx, 'due_date', e.target.value)} className={`w-full ${inputClass}`} />
-                        </div>
-                        {s.service_name.toLowerCase().includes('vídeo') && (
-                        <div>
-                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><Video className="w-3 h-3" /> Captação</label>
-                          <input type="date" value={s.capture_date} onChange={e => updateAddServiceRow(idx, 'capture_date', e.target.value)} className={`w-full ${inputClass}`} />
-                        </div>
-                        )}
                       </div>
                     </div>
                   ))}
@@ -601,7 +580,7 @@ export default function ClientsPage() {
                     </select>
                     <button onClick={() => setNewServices(prev => prev.length === 1 ? [emptyService()] : prev.filter((_, i) => i !== idx))} className="text-white/15 hover:text-red-400 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <div>
                       <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
                       <select value={s.responsible_id} onChange={e => updateService(idx, 'responsible_id', e.target.value)} className={`w-full ${inputClass}`}>
@@ -617,16 +596,6 @@ export default function ClientsPage() {
                       <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
                       <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateService(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
                     </div>
-                    <div>
-                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Entrega</label>
-                      <input type="date" value={s.due_date} onChange={e => updateService(idx, 'due_date', e.target.value)} className={`w-full ${inputClass}`} />
-                    </div>
-                    {s.service_name.toLowerCase().includes('vídeo') && (
-                    <div>
-                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><Video className="w-3 h-3" /> Captação</label>
-                      <input type="date" value={s.capture_date} onChange={e => updateService(idx, 'capture_date', e.target.value)} className={`w-full ${inputClass}`} />
-                    </div>
-                    )}
                   </div>
                 </div>
               ))}
