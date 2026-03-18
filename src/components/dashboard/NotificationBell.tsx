@@ -22,6 +22,31 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Realtime: show toast on new announcement
+  useEffect(() => {
+    const channel = supabase
+      .channel('announcements-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'announcements' },
+        (payload) => {
+          const newAnnouncement = payload.new as any;
+          toast(newAnnouncement.content, {
+            icon: <Megaphone className="w-4 h-4 text-brand-orange" />,
+            duration: 8000,
+            position: 'top-right',
+            className: 'bg-brand-black border border-white/10 text-white',
+          });
+          queryClient.invalidateQueries({ queryKey: ['announcements-notif'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements-notif'],
     queryFn: async () => {
