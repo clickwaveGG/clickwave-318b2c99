@@ -262,7 +262,19 @@ export default function ClientsPage() {
     onError: (e: any) => toast.error(e.message || 'Erro ao adicionar serviços'),
   });
 
-  const updateTaskRow = (i: number, field: keyof NewTaskRow, value: string) => {
+  const updateTaskDateMutation = useMutation({
+    mutationFn: async ({ taskId, field, value }: { taskId: string; field: 'due_date' | 'capture_date'; value: string }) => {
+      const { error } = await supabase.from('tasks').update({ [field]: value || null }).eq('id', taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      queryClient.invalidateQueries({ queryKey: ['calendar-tasks'] });
+      toast.success('Data atualizada!');
+    },
+    onError: () => toast.error('Erro ao atualizar data'),
+  });
+
     setTaskRows(prev => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
   };
 
