@@ -72,11 +72,12 @@ interface SingleTaskRowProps {
   task: any;
   profiles: any[];
   inputClass: string;
+  isAdmin: boolean;
   onUpdateDate: (taskId: string, field: 'due_date' | 'capture_date', value: string) => void;
   onDeleteTask: (taskId: string) => void;
 }
 
-function SingleTaskRow({ task, profiles, inputClass, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
+function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
   const assignee = profiles.find((p: any) => p.user_id === task.assigned_to);
   const isVideoTask = task.title?.toLowerCase().includes('vídeo') || task.title?.toLowerCase().includes('video');
 
@@ -108,7 +109,7 @@ function SingleTaskRow({ task, profiles, inputClass, onUpdateDate, onDeleteTask 
               {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MÉDIA' : 'BAIXA'}
             </span>
             {assignee && <span className="text-[10px] font-mono text-white/25">👤 {assignee.full_name}</span>}
-            {task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+            {isAdmin && task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
           </div>
         </div>
         <button
@@ -163,11 +164,12 @@ interface GroupedTaskListProps {
   tasks: any[];
   profiles: any[];
   inputClass: string;
+  isAdmin: boolean;
   onUpdateDate: (taskId: string, field: 'due_date' | 'capture_date', value: string) => void;
   onDeleteTask: (taskId: string) => void;
 }
 
-function GroupedTaskList({ tasks, profiles, inputClass, onUpdateDate, onDeleteTask }: GroupedTaskListProps) {
+function GroupedTaskList({ tasks, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: GroupedTaskListProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Group tasks by service base key
@@ -192,7 +194,7 @@ function GroupedTaskList({ tasks, profiles, inputClass, onUpdateDate, onDeleteTa
   };
 
   const renderSingleTask = (task: any) => {
-    return <SingleTaskRow key={task.id} task={task} profiles={profiles} inputClass={inputClass} onUpdateDate={onUpdateDate} onDeleteTask={onDeleteTask} />;
+    return <SingleTaskRow key={task.id} task={task} profiles={profiles} inputClass={inputClass} isAdmin={isAdmin} onUpdateDate={onUpdateDate} onDeleteTask={onDeleteTask} />;
   };
 
   return (
@@ -222,7 +224,7 @@ function GroupedTaskList({ tasks, profiles, inputClass, onUpdateDate, onDeleteTa
                   <span className="text-[10px] font-mono text-white/30">{totalCount} tarefa{totalCount !== 1 ? 's' : ''}</span>
                   <span className="text-[10px] font-mono text-emerald-400/50">{doneCount} concluída{doneCount !== 1 ? 's' : ''}</span>
                   {assignee && <span className="text-[10px] font-mono text-white/25">👤 {assignee.full_name}</span>}
-                  {totalPrice > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                  {isAdmin && totalPrice > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -296,6 +298,16 @@ export default function ClientsPage() {
       const { data } = await supabase.from('profiles').select('user_id, full_name, position');
       return data || [];
     },
+  });
+
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
+      return !!data;
+    },
+    enabled: !!user,
   });
 
   const invalidateAll = () => {
@@ -552,7 +564,7 @@ export default function ClientsPage() {
             </div>
             <p className="text-white/30 text-xs font-mono mt-0.5">
               {services.length} serviço{services.length !== 1 ? 's' : ''} · {totalTasks} tarefa{totalTasks !== 1 ? 's' : ''}
-              {totalServiceValue > 0 && ` · R$ ${totalServiceValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+              {isAdmin && totalServiceValue > 0 && ` · R$ ${totalServiceValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
             </p>
           </div>
           <span className={`text-[9px] font-mono px-2 py-0.5 rounded border shrink-0 ${sizeConf.color}`}>
@@ -623,10 +635,12 @@ export default function ClientsPage() {
                             placeholder="Selecionar..."
                           />
                         </div>
-                        <div>
-                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Valor</label>
-                          <input type="number" step="0.01" min="0" value={s.price} onChange={e => updateAddServiceRow(idx, 'price', e.target.value)} placeholder="0,00" className={`w-full ${inputClass}`} />
-                        </div>
+                        {isAdmin && (
+                          <div>
+                            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Valor</label>
+                            <input type="number" step="0.01" min="0" value={s.price} onChange={e => updateAddServiceRow(idx, 'price', e.target.value)} placeholder="0,00" className={`w-full ${inputClass}`} />
+                          </div>
+                        )}
                         <div>
                           <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
                           <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateAddServiceRow(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
@@ -665,7 +679,7 @@ export default function ClientsPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            {Number(s.price) > 0 && (
+                            {isAdmin && Number(s.price) > 0 && (
                               <span className="text-xs font-mono text-emerald-400/70">
                                 R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
@@ -744,10 +758,12 @@ export default function ClientsPage() {
                           <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><Video className="w-3 h-3" /> Captação</label>
                           <input type="date" value={row.capture_date} onChange={e => updateTaskRow(idx, 'capture_date', e.target.value)} className={`w-full ${inputClass}`} />
                         </div>
+                        {isAdmin && (
                         <div>
                           <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><DollarSign className="w-3 h-3" /> R$</label>
                           <input type="number" step="0.01" min="0" value={row.price} onChange={e => updateTaskRow(idx, 'price', e.target.value)} placeholder="0,00" className={`w-full ${inputClass}`} />
                         </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -770,6 +786,7 @@ export default function ClientsPage() {
                   tasks={clientTasks}
                   profiles={profiles}
                   inputClass={inputClass}
+                  isAdmin={isAdmin}
                   onUpdateDate={(taskId, field, value) => updateTaskDateMutation.mutate({ taskId, field, value })}
                   onDeleteTask={async (taskId) => {
                     await supabase.from('tasks').delete().eq('id', taskId);
@@ -862,10 +879,12 @@ export default function ClientsPage() {
                         placeholder="Selecionar..."
                       />
                     </div>
-                    <div>
-                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Valor</label>
-                      <input type="number" step="0.01" min="0" value={s.price} onChange={e => updateService(idx, 'price', e.target.value)} placeholder="0,00" className={`w-full ${inputClass}`} />
-                    </div>
+                    {isAdmin && (
+                      <div>
+                        <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Valor</label>
+                        <input type="number" step="0.01" min="0" value={s.price} onChange={e => updateService(idx, 'price', e.target.value)} placeholder="0,00" className={`w-full ${inputClass}`} />
+                      </div>
+                    )}
                     <div>
                       <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
                       <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateService(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
