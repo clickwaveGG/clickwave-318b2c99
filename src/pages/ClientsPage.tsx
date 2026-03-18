@@ -168,7 +168,7 @@ export default function ClientsPage() {
       invalidateAll();
       setNewClient({ name: '', size: 'small', is_recurring: false, notes: '' });
       setNewServices([emptyService()]);
-      setCreateTasksOnAdd(false);
+      
       setShowNewClient(false);
       toast.success('Cliente cadastrado com sucesso!');
     },
