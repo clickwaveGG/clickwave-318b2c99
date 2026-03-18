@@ -619,11 +619,16 @@ export default function ClientsPage() {
             </div>
             <div>
               <label className="text-[10px] font-mono text-white/30 uppercase mb-1.5 block">Porte</label>
-              <select value={newClient.size} onChange={e => setNewClient(p => ({ ...p, size: e.target.value }))} className={`w-full ${inputClass}`}>
-                <option value="small">Pequeno Porte</option>
-                <option value="medium">Médio Porte</option>
-                <option value="large">Grande Porte</option>
-              </select>
+              <FloatingSelect
+                value={newClient.size}
+                onChange={val => setNewClient(p => ({ ...p, size: val }))}
+                options={[
+                  { value: 'small', label: 'Pequeno Porte' },
+                  { value: 'medium', label: 'Médio Porte' },
+                  { value: 'large', label: 'Grande Porte' },
+                ]}
+                placeholder="Selecionar porte..."
+              />
             </div>
             <div className="flex items-end gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
