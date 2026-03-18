@@ -17,6 +17,7 @@ interface Task {
   assigned_to: string | null;
   created_by: string;
   is_team_task: boolean;
+  capture_date: string | null;
   created_at: string;
   updated_at: string;
 }
