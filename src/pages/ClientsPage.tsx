@@ -192,6 +192,19 @@ export default function ClientsPage() {
     onError: () => toast.error('Erro ao criar tarefas'),
   });
 
+  const deleteClientMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      const { error } = await supabase.from('clients').delete().eq('id', clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setDeleteClientId(null);
+      toast.success('Cliente removido com sucesso!');
+    },
+    onError: () => toast.error('Erro ao remover cliente'),
+  });
+
   const updateTaskRow = (i: number, field: keyof NewTaskRow, value: string) => {
     setTaskRows(prev => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
   };
