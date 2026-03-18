@@ -328,36 +328,104 @@ export default function ClientsPage() {
             )}
 
             {/* Contracted Services */}
-            {services.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
                   <Package className="w-4 h-4 text-brand-orange" />
                   <span className="text-sm font-mono text-white/50 uppercase tracking-wider">Serviços Contratados</span>
                 </div>
+                <button
+                  onClick={() => { setShowAddService(showAddService === client.id ? null : client.id); setAddServiceRows([emptyService()]); }}
+                  className="flex items-center gap-1.5 text-xs text-brand-orange hover:text-brand-orange/80 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Adicionar serviços
+                </button>
+              </div>
+
+              {/* Add services form for existing client */}
+              {showAddService === client.id && (
+                <div className="rounded-xl border border-brand-orange/20 bg-white/[0.02] p-4 space-y-3 mb-3">
+                  {addServiceRows.map((s, idx) => (
+                    <div key={idx} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-mono text-brand-orange/60 w-5 text-center shrink-0">{idx + 1}</span>
+                        <select value={s.service_name} onChange={e => updateAddServiceRow(idx, 'service_name', e.target.value)} className={`flex-1 ${inputClass}`}>
+                          <option value="">Selecionar serviço...</option>
+                          {SERVICE_PRESETS.map(sp => <option key={sp} value={sp}>{sp}</option>)}
+                        </select>
+                        <button onClick={() => setAddServiceRows(prev => prev.length === 1 ? [emptyService()] : prev.filter((_, i) => i !== idx))} className="text-white/15 hover:text-red-400 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
+                          <select value={s.responsible_id} onChange={e => updateAddServiceRow(idx, 'responsible_id', e.target.value)} className={`w-full ${inputClass}`}>
+                            <option value="">Selecionar...</option>
+                            {profiles.map((p: any) => <option key={p.user_id} value={p.user_id}>{p.full_name}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Valor</label>
+                          <input type="number" step="0.01" min="0" value={s.price} onChange={e => updateAddServiceRow(idx, 'price', e.target.value)} placeholder="0,00" className={`w-full ${inputClass}`} />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
+                          <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateAddServiceRow(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Entrega</label>
+                          <input type="date" value={s.due_date} onChange={e => updateAddServiceRow(idx, 'due_date', e.target.value)} className={`w-full ${inputClass}`} />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><Video className="w-3 h-3" /> Captação</label>
+                          <input type="date" value={s.capture_date} onChange={e => updateAddServiceRow(idx, 'capture_date', e.target.value)} className={`w-full ${inputClass}`} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => setAddServiceRows(prev => [...prev, emptyService()])} className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60"><Plus className="w-3.5 h-3.5" /> Mais um serviço</button>
+                    <button
+                      onClick={() => addServicesMutation.mutate({ clientId: client.id, clientName: client.name, services: addServiceRows })}
+                      className="px-4 py-1.5 rounded-lg bg-brand-orange text-white text-xs font-medium hover:bg-brand-orange/90 transition-colors"
+                    >
+                      Salvar {addServiceRows.filter(r => r.service_name.trim()).length} serviço{addServiceRows.filter(r => r.service_name.trim()).length !== 1 ? 's' : ''}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {services.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {services.map((s: any) => {
                     const resp = profiles.find((p: any) => p.user_id === s.responsible_id);
                     return (
-                      <div key={s.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-3 flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white truncate">{s.service_name}</p>
-                          <div className="flex items-center gap-3 mt-1">
-                            {resp && <span className="text-[10px] font-mono text-white/30">👤 {resp.full_name}</span>}
-                            {s.quantity_per_month && (
-                              <span className="text-[10px] font-mono text-white/25">{s.quantity_per_month}/mês</span>
-                            )}
+                      <div key={s.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white truncate">{s.service_name}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              {resp && <span className="text-[10px] font-mono text-white/30">👤 {resp.full_name}</span>}
+                              {s.quantity_per_month && (
+                                <span className="text-[10px] font-mono text-white/25">{s.quantity_per_month}/mês</span>
+                              )}
+                              {s.due_date && <span className="text-[10px] font-mono text-white/20">📅 {new Date(s.due_date).toLocaleDateString('pt-BR')}</span>}
+                              {s.capture_date && <span className="text-[10px] font-mono text-purple-400/60">🎬 {new Date(s.capture_date).toLocaleDateString('pt-BR')}</span>}
+                            </div>
                           </div>
+                          {Number(s.price) > 0 && (
+                            <span className="text-xs font-mono text-emerald-400/70 shrink-0">
+                              R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          )}
                         </div>
-                        {Number(s.price) > 0 && (
-                          <span className="text-xs font-mono text-emerald-400/70 shrink-0">
-                            R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </span>
-                        )}
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              ) : (
+                <p className="text-white/15 text-xs font-mono text-center py-2">Nenhum serviço cadastrado</p>
+              )}
+            </div>
             )}
 
             {/* Tasks */}
