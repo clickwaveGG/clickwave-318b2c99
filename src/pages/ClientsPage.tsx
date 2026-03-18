@@ -591,6 +591,19 @@ export default function ClientsPage() {
           <span className={`text-[9px] font-mono px-2 py-0.5 rounded border shrink-0 ${sizeConf.color}`}>
             {sizeConf.label.toUpperCase()}
           </span>
+          {isAdmin && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingClient(editingClient === client.id ? null : client.id);
+                setEditForm({ name: client.name, size: client.size, is_recurring: client.is_recurring, notes: client.notes || '', contact_info: client.contact_info || '' });
+              }}
+              className="text-white/15 hover:text-brand-orange transition-colors shrink-0"
+              title="Editar cliente"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); setDeleteClientId(client.id); }}
             className="text-white/15 hover:text-red-400 transition-colors shrink-0"
