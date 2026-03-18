@@ -72,11 +72,12 @@ interface SingleTaskRowProps {
   task: any;
   profiles: any[];
   inputClass: string;
+  isAdmin: boolean;
   onUpdateDate: (taskId: string, field: 'due_date' | 'capture_date', value: string) => void;
   onDeleteTask: (taskId: string) => void;
 }
 
-function SingleTaskRow({ task, profiles, inputClass, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
+function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
   const assignee = profiles.find((p: any) => p.user_id === task.assigned_to);
   const isVideoTask = task.title?.toLowerCase().includes('vídeo') || task.title?.toLowerCase().includes('video');
 
