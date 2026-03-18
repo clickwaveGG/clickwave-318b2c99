@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { ChevronLeft, ChevronRight, CalendarDays, CheckCircle2, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Task = {
   id: string;
