@@ -680,7 +680,7 @@ export default function ClientsPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            {Number(s.price) > 0 && (
+                            {isAdmin && Number(s.price) > 0 && (
                               <span className="text-xs font-mono text-emerald-400/70">
                                 R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
