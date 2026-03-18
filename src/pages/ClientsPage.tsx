@@ -298,6 +298,16 @@ export default function ClientsPage() {
     },
   });
 
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
+      return !!data;
+    },
+    enabled: !!user,
+  });
+
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ['clients'] });
     queryClient.invalidateQueries({ queryKey: ['client-services'] });
