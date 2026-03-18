@@ -22,11 +22,14 @@ interface Task {
 }
 
 const STATUS_COLUMNS = [
+  { key: 'pending', label: 'Pendente', dot: 'bg-orange-400', color: 'text-orange-400' },
   { key: 'todo', label: 'A Fazer', dot: 'bg-white/30', color: 'text-white/40' },
   { key: 'in_progress', label: 'Em Progresso', dot: 'bg-blue-400', color: 'text-blue-400' },
   { key: 'review', label: 'Em Revisão', dot: 'bg-yellow-400', color: 'text-yellow-400' },
   { key: 'done', label: 'Concluído', dot: 'bg-emerald-400', color: 'text-emerald-400' },
 ];
+
+const MAX_VISIBLE_TASKS = 5;
 
 const PRIORITIES = [
   { value: 'low', label: 'Baixa' },
