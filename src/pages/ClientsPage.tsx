@@ -10,6 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { FloatingSelect } from '@/components/ui/floating-select';
 import { toast } from 'sonner';
 
 const SIZE_CONFIG = {
