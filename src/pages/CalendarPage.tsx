@@ -91,17 +91,35 @@ export default function CalendarPage() {
   const firstDay = getFirstDayOfMonth(year, month);
   const todayStr = now.toISOString().slice(0, 10);
 
-  // Group tasks by date (YYYY-MM-DD)
+  // Convert JS weekday (0=Sun) to our weekday (0=Mon)
+  const jsWeekdayToOurs = (jsDay: number) => jsDay === 0 ? 6 : jsDay - 1;
+
   const tasksByDate = useMemo(() => {
     const map: Record<string, Task[]> = {};
     allTasks.forEach(t => {
-      if (!t.due_date) return;
-      const dateKey = t.due_date.slice(0, 10);
-      if (!map[dateKey]) map[dateKey] = [];
-      map[dateKey].push(t);
+      // Tasks with a specific due_date
+      if (t.due_date) {
+        const dateKey = t.due_date.slice(0, 10);
+        if (!map[dateKey]) map[dateKey] = [];
+        map[dateKey].push(t);
+      }
+      // Tasks with weekday (recurring traffic) — inject into every matching weekday of the month
+      if (t.weekday != null && t.status !== 'done') {
+        for (let d = 1; d <= daysInMonth; d++) {
+          const date = new Date(year, month, d);
+          if (jsWeekdayToOurs(date.getDay()) === t.weekday) {
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            if (!map[dateKey]) map[dateKey] = [];
+            // Avoid duplicates if task also has due_date on same day
+            if (!map[dateKey].some(existing => existing.id === t.id)) {
+              map[dateKey].push(t);
+            }
+          }
+        }
+      }
     });
     return map;
-  }, [allTasks]);
+  }, [allTasks, year, month, daysInMonth]);
 
   // Day status for mini calendar: true = all done, false = has overdue, undefined = no tasks
   const dayStatus = useMemo(() => {
