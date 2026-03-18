@@ -303,6 +303,8 @@ export default function ClientsPage() {
   const [taskRows, setTaskRows] = useState<NewTaskRow[]>([emptyTask()]);
   const [editingClient, setEditingClient] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', size: 'small', is_recurring: false, notes: '', contact_info: '' });
+  const [addTaskForService, setAddTaskForService] = useState<string | null>(null);
+  const [serviceTaskRows, setServiceTaskRows] = useState<{ title: string; due_date: string; capture_date: string }[]>([{ title: '', due_date: '', capture_date: '' }]);
 
   // New client form
   const [newClient, setNewClient] = useState({
