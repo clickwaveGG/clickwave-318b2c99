@@ -492,6 +492,15 @@ export default function CalendarPage() {
                         <span className="text-[9px] text-white/25 font-mono shrink-0">
                           {t.assigned_to ? profileMap[t.assigned_to]?.split(' ')[0] : '?'}
                         </span>
+                        {isAdmin && (
+                          <button
+                            onClick={() => toggleTaskStatus(t.id, t.status)}
+                            className="text-emerald-400 hover:text-emerald-300 transition-colors shrink-0"
+                            title="Marcar como concluída"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
