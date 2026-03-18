@@ -109,7 +109,7 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
               {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MÉDIA' : 'BAIXA'}
             </span>
             {assignee && <span className="text-[10px] font-mono text-white/25">👤 {assignee.full_name}</span>}
-            {task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+            {isAdmin && task.price != null && Number(task.price) > 0 && <span className="text-[10px] font-mono text-emerald-400/60">R$ {Number(task.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
           </div>
         </div>
         <button
