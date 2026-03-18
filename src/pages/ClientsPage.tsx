@@ -580,7 +580,7 @@ export default function ClientsPage() {
                     </select>
                     <button onClick={() => setNewServices(prev => prev.length === 1 ? [emptyService()] : prev.filter((_, i) => i !== idx))} className="text-white/15 hover:text-red-400 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <div>
                       <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
                       <select value={s.responsible_id} onChange={e => updateService(idx, 'responsible_id', e.target.value)} className={`w-full ${inputClass}`}>
@@ -596,16 +596,6 @@ export default function ClientsPage() {
                       <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
                       <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateService(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
                     </div>
-                    <div>
-                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Entrega</label>
-                      <input type="date" value={s.due_date} onChange={e => updateService(idx, 'due_date', e.target.value)} className={`w-full ${inputClass}`} />
-                    </div>
-                    {s.service_name.toLowerCase().includes('vídeo') && (
-                    <div>
-                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 flex items-center gap-1"><Video className="w-3 h-3" /> Captação</label>
-                      <input type="date" value={s.capture_date} onChange={e => updateService(idx, 'capture_date', e.target.value)} className={`w-full ${inputClass}`} />
-                    </div>
-                    )}
                   </div>
                 </div>
               ))}
