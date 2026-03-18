@@ -4,8 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Building2, Plus, ChevronDown, ChevronRight, CheckCircle2, Clock, X,
-  ListTodo, Trash2, DollarSign, Video, CalendarDays, RefreshCw, Package
+  ListTodo, Trash2, DollarSign, Video, CalendarDays, RefreshCw, Package, AlertTriangle
 } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 const SIZE_CONFIG = {
@@ -51,6 +55,7 @@ export default function ClientsPage() {
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
   const [showNewTask, setShowNewTask] = useState<string | null>(null);
+  const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
   const [taskRows, setTaskRows] = useState<NewTaskRow[]>([emptyTask()]);
 
   // New client form
@@ -187,6 +192,19 @@ export default function ClientsPage() {
     onError: () => toast.error('Erro ao criar tarefas'),
   });
 
+  const deleteClientMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      const { error } = await supabase.from('clients').delete().eq('id', clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setDeleteClientId(null);
+      toast.success('Cliente removido com sucesso!');
+    },
+    onError: () => toast.error('Erro ao remover cliente'),
+  });
+
   const updateTaskRow = (i: number, field: keyof NewTaskRow, value: string) => {
     setTaskRows(prev => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
   };
@@ -245,6 +263,13 @@ export default function ClientsPage() {
           <span className={`text-[9px] font-mono px-2 py-0.5 rounded border shrink-0 ${sizeConf.color}`}>
             {sizeConf.label.toUpperCase()}
           </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); setDeleteClientId(client.id); }}
+            className="text-white/15 hover:text-red-400 transition-colors shrink-0"
+            title="Remover cliente"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
           {totalTasks > 0 && (
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -521,6 +546,29 @@ export default function ClientsPage() {
           );
         })
       )}
+      <AlertDialog open={!!deleteClientId} onOpenChange={(open) => !open && setDeleteClientId(null)}>
+        <AlertDialogContent className="bg-[#1a1a2e] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" /> Remover cliente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/50">
+              Tem certeza que deseja remover este cliente? Todos os serviços vinculados serão excluídos. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteClientId && deleteClientMutation.mutate(deleteClientId)}
+              className="bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
+            >
+              Sim, remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
