@@ -653,10 +653,13 @@ export default function ClientsPage() {
                 <div key={idx} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-mono text-brand-orange/60 w-5 text-center shrink-0">{idx + 1}</span>
-                    <select value={s.service_name} onChange={e => updateService(idx, 'service_name', e.target.value)} className={`flex-1 ${inputClass}`}>
-                      <option value="">Selecionar serviço...</option>
-                      {SERVICE_PRESETS.map(sp => <option key={sp} value={sp}>{sp}</option>)}
-                    </select>
+                    <FloatingSelect
+                      value={s.service_name}
+                      onChange={val => updateService(idx, 'service_name', val)}
+                      options={SERVICE_PRESETS.map(sp => ({ value: sp, label: sp }))}
+                      placeholder="Selecionar serviço..."
+                      className="flex-1"
+                    />
                     <button onClick={() => setNewServices(prev => prev.length === 1 ? [emptyService()] : prev.filter((_, i) => i !== idx))} className="text-white/15 hover:text-red-400 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
