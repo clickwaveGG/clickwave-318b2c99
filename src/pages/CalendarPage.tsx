@@ -55,10 +55,10 @@ export default function CalendarPage() {
   const { data: allTasks = [] } = useQuery({
     queryKey: ['calendar-tasks', user?.id, isAdmin],
     queryFn: async () => {
+      // Fetch tasks with due_date OR weekday set
       let query = supabase
         .from('tasks')
         .select('*')
-        .not('due_date', 'is', null)
         .order('due_date', { ascending: true });
 
       if (!isAdmin) {
@@ -66,7 +66,8 @@ export default function CalendarPage() {
       }
 
       const { data } = await query;
-      return (data || []) as Task[];
+      // Filter: must have due_date or weekday
+      return ((data || []) as Task[]).filter(t => t.due_date || t.weekday != null);
     },
     enabled: !!user,
   });
