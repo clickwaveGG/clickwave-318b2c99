@@ -401,6 +401,18 @@ export default function ClientsPage() {
     onError: () => toast.error('Erro ao remover cliente'),
   });
 
+  const deleteServiceMutation = useMutation({
+    mutationFn: async (serviceId: string) => {
+      const { error } = await supabase.from('client_services').delete().eq('id', serviceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Serviço removido!');
+    },
+    onError: () => toast.error('Erro ao remover serviço'),
+  });
+
   const addServicesMutation = useMutation({
     mutationFn: async ({ clientId, clientName, services }: { clientId: string; clientName: string; services: ServiceRow[] }) => {
       const valid = services.filter(s => s.service_name.trim());
