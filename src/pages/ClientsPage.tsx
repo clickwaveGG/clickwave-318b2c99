@@ -457,6 +457,7 @@ export default function ClientsPage() {
     },
     onError: (e: any) => toast.error(e.message || 'Erro ao atualizar cliente'),
   });
+  const addServicesMutation = useMutation({
     mutationFn: async ({ clientId, clientName, services }: { clientId: string; clientName: string; services: ServiceRow[] }) => {
       const valid = services.filter(s => s.service_name.trim());
       if (valid.length === 0) throw new Error('Adicione ao menos um serviço');
