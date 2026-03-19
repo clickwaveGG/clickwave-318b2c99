@@ -609,12 +609,32 @@ export default function ClientsPage() {
   });
 
   const toggleServiceCompletedMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const { error } = await supabase.from('client_services').update({ completed } as any).eq('id', id);
-      if (error) throw error;
+    mutationFn: async ({ id, completed, isRecurring }: { id: string; completed: boolean; isRecurring: boolean }) => {
+      if (isRecurring) {
+        if (completed) {
+          // Mark as completed for current month
+          const { error } = await supabase.from('service_completions').insert({
+            service_id: id,
+            month: currentMonthStr,
+            completed_by: user!.id,
+          } as any);
+          if (error) throw error;
+        } else {
+          // Remove completion for current month
+          const { error } = await supabase.from('service_completions').delete()
+            .eq('service_id', id)
+            .eq('month', currentMonthStr);
+          if (error) throw error;
+        }
+      } else {
+        // Non-recurring: use the boolean field
+        const { error } = await supabase.from('client_services').update({ completed } as any).eq('id', id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       invalidateAll();
+      queryClient.invalidateQueries({ queryKey: ['service-completions'] });
       toast.success('Status do serviço atualizado!');
     },
   });
