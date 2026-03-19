@@ -87,7 +87,7 @@ interface SingleTaskRowProps {
   onUpdateTask: (id: string, updates: Record<string, any>) => void;
 }
 
-function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
+function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask, onUpdateTask }: SingleTaskRowProps) {
   const assignee = profiles.find((p: any) => p.user_id === task.assigned_to);
   const isVideoTask = task.title?.toLowerCase().includes('vídeo') || task.title?.toLowerCase().includes('video');
   const isTraffic = isTrafficTask(task.title || '');
@@ -95,6 +95,8 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
   const [localDueDate, setLocalDueDate] = useState(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
   const [localCaptureDate, setLocalCaptureDate] = useState(task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '');
   const [localWeekday, setLocalWeekday] = useState<string>(task.weekday != null ? String(task.weekday) : '');
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', status: '', priority: '', assigned_to: '', price: '' });
 
   const origDueDate = task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '';
   const origCaptureDate = task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '';
@@ -111,17 +113,85 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
 
   const handleSave = async () => {
     if (isTraffic) {
-      // Save weekday on the task
       const { error } = await supabase.from('tasks').update({ weekday: localWeekday ? parseInt(localWeekday) : null }).eq('id', task.id);
       if (error) { toast.error('Erro ao salvar'); return; }
       toast.success('Dia da semana atualizado!');
-      // Trigger invalidation through parent
-      onUpdateDate(task.id, 'due_date', localDueDate); // just to invalidate
+      onUpdateDate(task.id, 'due_date', localDueDate);
       return;
     }
     if (localDueDate !== origDueDate) onUpdateDate(task.id, 'due_date', localDueDate);
     if (localCaptureDate !== origCaptureDate) onUpdateDate(task.id, 'capture_date', localCaptureDate);
   };
+
+  const startEditing = () => {
+    setEditing(true);
+    setEditForm({
+      title: task.title || '',
+      status: task.status || 'todo',
+      priority: task.priority || 'medium',
+      assigned_to: task.assigned_to || '',
+      price: task.price != null ? String(task.price) : '',
+    });
+  };
+
+  const saveEdit = () => {
+    const updates: Record<string, any> = {
+      title: editForm.title.trim(),
+      status: editForm.status,
+      priority: editForm.priority,
+      assigned_to: editForm.assigned_to || null,
+    };
+    if (isAdmin) updates.price = editForm.price ? parseFloat(editForm.price) : null;
+    onUpdateTask(task.id, updates);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="rounded-xl border border-brand-orange/20 bg-white/[0.03] p-4 space-y-2">
+        <div>
+          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Título</label>
+          <input value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} className={`w-full ${inputClass}`} />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div>
+            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Status</label>
+            <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className={`w-full ${inputClass}`}>
+              <option value="todo" className="bg-brand-black">A Fazer</option>
+              <option value="in_progress" className="bg-brand-black">Em Progresso</option>
+              <option value="review" className="bg-brand-black">Em Revisão</option>
+              <option value="done" className="bg-brand-black">Concluído</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Prioridade</label>
+            <select value={editForm.priority} onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))} className={`w-full ${inputClass}`}>
+              <option value="low" className="bg-brand-black">Baixa</option>
+              <option value="medium" className="bg-brand-black">Média</option>
+              <option value="high" className="bg-brand-black">Alta</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
+            <select value={editForm.assigned_to} onChange={e => setEditForm(f => ({ ...f, assigned_to: e.target.value }))} className={`w-full ${inputClass}`}>
+              <option value="" className="bg-brand-black">—</option>
+              {profiles.map((p: any) => <option key={p.user_id} value={p.user_id} className="bg-brand-black">{p.full_name}</option>)}
+            </select>
+          </div>
+          {isAdmin && (
+            <div>
+              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Valor</label>
+              <input type="number" step="0.01" min="0" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} placeholder="0,00" className={`w-full ${inputClass}`} />
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <button onClick={() => setEditing(false)} className="text-[10px] font-mono px-3 py-1.5 text-white/30 hover:text-white/60">Cancelar</button>
+          <button onClick={saveEdit} className="text-[10px] font-mono px-3 py-1.5 rounded-lg bg-brand-orange text-brand-black font-medium hover:bg-brand-orange/90">Salvar</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`group/task rounded-xl border border-white/10 bg-white/[0.02] p-4 ${task.status === 'done' ? 'opacity-50' : ''}`}>
@@ -142,13 +212,22 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
             )}
           </div>
         </div>
-        <button
-          onClick={() => onDeleteTask(task.id)}
-          className="text-white/15 hover:text-red-400 transition-colors opacity-0 group-hover/task:opacity-100 shrink-0 mt-0.5"
-          title="Remover tarefa"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+          <button
+            onClick={startEditing}
+            className="text-white/15 hover:text-brand-orange transition-colors opacity-0 group-hover/task:opacity-100"
+            title="Editar tarefa"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => onDeleteTask(task.id)}
+            className="text-white/15 hover:text-red-400 transition-colors opacity-0 group-hover/task:opacity-100"
+            title="Remover tarefa"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
       <div className={`flex items-end gap-2 mt-3 ml-7`}>
         <div className={`grid gap-2 flex-1 ${isTraffic ? 'grid-cols-1 max-w-[200px]' : isVideoTask ? 'grid-cols-2' : 'grid-cols-1 max-w-[200px]'}`}>
