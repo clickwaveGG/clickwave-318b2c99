@@ -60,10 +60,14 @@ interface ServiceRow {
   responsible_id: string;
   price: string;
   quantity_per_month: string;
+  is_recurring: boolean;
+  notes: string;
+  qty_indefinite: boolean;
 }
 
 const emptyService = (): ServiceRow => ({
   service_name: '', responsible_id: '', price: '', quantity_per_month: '',
+  is_recurring: true, notes: '', qty_indefinite: false,
 });
 
 // Groups tasks like "Vídeos 1/10 — Client" into a single collapsible row
