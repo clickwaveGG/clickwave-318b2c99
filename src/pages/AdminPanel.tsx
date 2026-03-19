@@ -158,13 +158,8 @@ export default function AdminPanel() {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <AdminFinancialOverview
-            totalRevenue={totalRevenue}
-            totalProfit={totalProfit}
-            totalPayments={totalPayments}
-            memberPayments={memberPayments}
-          />
-          <AdminServiceProfitTable services={activeServices as any} />
+          <AdminFinancialOverview services={allServices as any} />
+          <AdminServiceProfitTable services={allServices.filter((s: any) => !s.completed) as any} />
         </div>
       )}
 
