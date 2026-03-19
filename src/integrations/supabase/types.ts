@@ -46,8 +46,10 @@ export type Database = {
           created_at: string
           due_date: string | null
           id: string
+          is_recurring: boolean
           last_reset_at: string | null
           member_payment: number | null
+          notes: string | null
           price: number | null
           profit: number | null
           quantity_per_month: number | null
@@ -62,8 +64,10 @@ export type Database = {
           created_at?: string
           due_date?: string | null
           id?: string
+          is_recurring?: boolean
           last_reset_at?: string | null
           member_payment?: number | null
+          notes?: string | null
           price?: number | null
           profit?: number | null
           quantity_per_month?: number | null
@@ -78,8 +82,10 @@ export type Database = {
           created_at?: string
           due_date?: string | null
           id?: string
+          is_recurring?: boolean
           last_reset_at?: string | null
           member_payment?: number | null
+          notes?: string | null
           price?: number | null
           profit?: number | null
           quantity_per_month?: number | null
