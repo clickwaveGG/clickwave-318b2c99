@@ -78,7 +78,7 @@ export default function Colleagues() {
                   <div className="min-w-0">
                     <p className="text-sm text-white truncate">{m.full_name || 'Sem nome'}</p>
                     <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">
-                      {m.role === 'admin' ? 'Admin' : 'Membro'}
+                      {m.position || (m.role === 'admin' ? 'Admin' : 'Membro')}
                     </p>
                   </div>
                   <div className="ml-auto text-right shrink-0">
@@ -101,12 +101,8 @@ export default function Colleagues() {
                 </div>
                 <div>
                   <h2 className="text-xl font-serif text-white">{selectedMember.full_name}</h2>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                    selectedMember.role === 'admin'
-                      ? 'border-brand-orange/30 text-brand-orange bg-brand-orange/10'
-                      : 'border-white/10 text-white/40'
-                  }`}>
-                    {selectedMember.role === 'admin' ? 'ADMIN' : 'MEMBRO'}
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-brand-orange/30 text-brand-orange bg-brand-orange/10">
+                    {selectedMember.position || (selectedMember.role === 'admin' ? 'ADMIN' : 'MEMBRO')}
                   </span>
                 </div>
               </div>
