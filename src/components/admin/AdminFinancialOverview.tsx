@@ -13,6 +13,7 @@ interface Service {
   profit: number | null;
   member_payment: number | null;
   completed: boolean;
+  is_recurring: boolean;
   created_at: string;
   responsible_id: string | null;
   responsible_name?: string;
@@ -20,11 +21,17 @@ interface Service {
   service_name: string;
 }
 
-interface FinancialOverviewProps {
-  services: Service[];
+interface ServiceCompletion {
+  service_id: string;
+  month: string;
 }
 
-export default function AdminFinancialOverview({ services }: FinancialOverviewProps) {
+interface FinancialOverviewProps {
+  services: Service[];
+  completions: ServiceCompletion[];
+}
+
+export default function AdminFinancialOverview({ services, completions }: FinancialOverviewProps) {
   const now = new Date();
   const [currentMonth, setCurrentMonth] = useState(now);
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
@@ -37,28 +44,39 @@ export default function AdminFinancialOverview({ services }: FinancialOverviewPr
 
   // Filter services active during the selected period
   const filteredServices = useMemo(() => {
-    if (!rangeStart || !rangeEnd) return services.filter(s => !s.completed);
+    if (!rangeStart || !rangeEnd) return services;
 
     return services.filter(s => {
       const createdAt = new Date(s.created_at);
-      // Service must have been created before or during the range end
       if (isBefore(rangeEnd, createdAt)) return false;
 
-      if (s.completed) {
-        // Completed (one-off) services only count in the month they were created
+      if (!s.is_recurring && s.completed) {
+        // Non-recurring completed services only count in creation month
         const createdMonth = startOfMonth(createdAt);
         const createdMonthEnd = endOfMonth(createdAt);
-        // Check if the selected range overlaps with the creation month
-        const overlaps = !isBefore(rangeEnd, createdMonth) && !isBefore(createdMonthEnd, rangeStart);
-        return overlaps;
+        return !isBefore(rangeEnd, createdMonth) && !isBefore(createdMonthEnd, rangeStart);
       }
 
       return true;
     });
   }, [services, rangeStart, rangeEnd]);
 
-  const estimatedRevenue = filteredServices.filter(s => !s.completed).reduce((sum, s) => sum + (Number(s.price) || 0), 0);
-  const realRevenue = filteredServices.filter(s => s.completed).reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+  // Helper: check if a service is completed for a given month
+  const isCompletedInMonth = (service: Service, monthDate: Date): boolean => {
+    if (!service.is_recurring) return service.completed;
+    const monthStr = format(monthDate, 'yyyy-MM-01');
+    return completions.some(c => c.service_id === service.id && c.month === monthStr);
+  };
+
+  // For month mode, check completion for the selected month; for custom, use current month
+  const checkMonth = mode === 'month' ? currentMonth : now;
+
+  const estimatedRevenue = filteredServices
+    .filter(s => !isCompletedInMonth(s, checkMonth))
+    .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+  const realRevenue = filteredServices
+    .filter(s => isCompletedInMonth(s, checkMonth))
+    .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
   const totalProfit = filteredServices.reduce((sum, s) => sum + (Number(s.profit) || 0), 0);
   const totalPayments = filteredServices.reduce((sum, s) => sum + (Number(s.member_payment) || 0), 0);
 

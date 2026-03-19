@@ -418,6 +418,19 @@ export default function ClientsPage() {
     },
   });
 
+  const currentMonthStr = (() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  })();
+
+  const { data: serviceCompletions = [] } = useQuery({
+    queryKey: ['service-completions', currentMonthStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('service_completions').select('*').eq('month', currentMonthStr);
+      return data || [];
+    },
+  });
+
   const { data: allTasks = [] } = useQuery({
     queryKey: ['all-client-tasks'],
     queryFn: async () => {
@@ -596,12 +609,32 @@ export default function ClientsPage() {
   });
 
   const toggleServiceCompletedMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const { error } = await supabase.from('client_services').update({ completed } as any).eq('id', id);
-      if (error) throw error;
+    mutationFn: async ({ id, completed, isRecurring }: { id: string; completed: boolean; isRecurring: boolean }) => {
+      if (isRecurring) {
+        if (completed) {
+          // Mark as completed for current month
+          const { error } = await supabase.from('service_completions').insert({
+            service_id: id,
+            month: currentMonthStr,
+            completed_by: user!.id,
+          } as any);
+          if (error) throw error;
+        } else {
+          // Remove completion for current month
+          const { error } = await supabase.from('service_completions').delete()
+            .eq('service_id', id)
+            .eq('month', currentMonthStr);
+          if (error) throw error;
+        }
+      } else {
+        // Non-recurring: use the boolean field
+        const { error } = await supabase.from('client_services').update({ completed } as any).eq('id', id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       invalidateAll();
+      queryClient.invalidateQueries({ queryKey: ['service-completions'] });
       toast.success('Status do serviço atualizado!');
     },
   });
@@ -968,8 +1001,11 @@ export default function ClientsPage() {
                     const isVideoSvc = s.service_name?.toLowerCase().includes('vídeo') || s.service_name?.toLowerCase().includes('video');
                     const isTrafficSvc = isTrafficTask(s.service_name || '');
                     const showingForm = addTaskForService === s.id;
+                    const isCompletedThisMonth = s.is_recurring
+                      ? serviceCompletions.some((sc: any) => sc.service_id === s.id)
+                      : s.completed;
                     return (
-                      <div key={s.id} className={`group/svc rounded-xl border p-3 ${s.completed ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/10 bg-white/[0.02]'}`}>
+                      <div key={s.id} className={`group/svc rounded-xl border p-3 ${isCompletedThisMonth ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/10 bg-white/[0.02]'}`}>
                       {editingServiceId === s.id ? (
                         /* ---- EDIT MODE ---- */
                         <div className="space-y-2">
@@ -1055,7 +1091,7 @@ export default function ClientsPage() {
                         /* ---- VIEW MODE ---- */
                         <div className="flex items-center gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm truncate ${s.completed ? 'text-white/40 line-through' : 'text-white'}`}>{s.service_name}</p>
+                            <p className={`text-sm truncate ${isCompletedThisMonth ? 'text-white/40 line-through' : 'text-white'}`}>{s.service_name}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-1.5">
                               {resp && <span className="text-[10px] font-mono text-white/30">👤 {resp.full_name}</span>}
                               <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${s.is_recurring === false ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' : 'border-blue-500/30 text-blue-400 bg-blue-500/10'}`}>
@@ -1096,14 +1132,14 @@ export default function ClientsPage() {
                             </button>
                             {isAdmin && (
                               <button
-                                onClick={() => toggleServiceCompletedMutation.mutate({ id: s.id, completed: !s.completed })}
-                                className={`transition-colors opacity-0 group-hover/svc:opacity-100 ${s.completed ? 'text-emerald-400 hover:text-white/40' : 'text-white/20 hover:text-emerald-400'}`}
-                                title={s.completed ? 'Marcar como ativo' : 'Marcar como concluído'}
+                                onClick={() => toggleServiceCompletedMutation.mutate({ id: s.id, completed: !isCompletedThisMonth, isRecurring: s.is_recurring !== false })}
+                                className={`transition-colors opacity-0 group-hover/svc:opacity-100 ${isCompletedThisMonth ? 'text-emerald-400 hover:text-white/40' : 'text-white/20 hover:text-emerald-400'}`}
+                                title={isCompletedThisMonth ? 'Marcar como ativo' : 'Marcar como concluído'}
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                               </button>
                             )}
-                            {!s.completed && (
+                            {!isCompletedThisMonth && (
                               <button
                                 onClick={() => {
                                   if (showingForm) {

@@ -63,6 +63,14 @@ export default function AdminPanel() {
     },
   });
 
+  const { data: serviceCompletions = [] } = useQuery({
+    queryKey: ['admin-service-completions'],
+    queryFn: async () => {
+      const { data } = await supabase.from('service_completions').select('*');
+      return data || [];
+    },
+  });
+
   // Announcements
   const { data: announcements = [] } = useQuery({
     queryKey: ['admin-announcements'],
@@ -158,7 +166,7 @@ export default function AdminPanel() {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <AdminFinancialOverview services={allServices as any} />
+          <AdminFinancialOverview services={allServices as any} completions={serviceCompletions as any} />
           <AdminServiceProfitTable services={allServices.filter((s: any) => !s.completed) as any} />
         </div>
       )}
