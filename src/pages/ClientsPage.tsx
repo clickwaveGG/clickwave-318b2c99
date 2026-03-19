@@ -418,6 +418,19 @@ export default function ClientsPage() {
     },
   });
 
+  const currentMonthStr = (() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  })();
+
+  const { data: serviceCompletions = [] } = useQuery({
+    queryKey: ['service-completions', currentMonthStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('service_completions').select('*').eq('month', currentMonthStr);
+      return data || [];
+    },
+  });
+
   const { data: allTasks = [] } = useQuery({
     queryKey: ['all-client-tasks'],
     queryFn: async () => {
