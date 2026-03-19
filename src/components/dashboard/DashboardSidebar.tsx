@@ -89,7 +89,7 @@ export function DashboardSidebar() {
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm truncate">{profile?.full_name || 'Colaborador'}</p>
               <p className="text-white/30 text-[10px] font-mono uppercase tracking-wider">
-                {role === 'admin' ? 'Admin' : 'Membro'}
+                {profile?.position || (role === 'admin' ? 'Admin' : 'Membro')}
               </p>
             </div>
           )}
