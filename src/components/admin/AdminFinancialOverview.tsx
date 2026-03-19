@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, Users, Wallet, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Wallet, CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths, addMonths, isWithinInterval, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
@@ -57,7 +57,8 @@ export default function AdminFinancialOverview({ services }: FinancialOverviewPr
     });
   }, [services, rangeStart, rangeEnd]);
 
-  const totalRevenue = filteredServices.reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+  const estimatedRevenue = filteredServices.filter(s => !s.completed).reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+  const realRevenue = filteredServices.filter(s => s.completed).reduce((sum, s) => sum + (Number(s.price) || 0), 0);
   const totalProfit = filteredServices.reduce((sum, s) => sum + (Number(s.profit) || 0), 0);
   const totalPayments = filteredServices.reduce((sum, s) => sum + (Number(s.member_payment) || 0), 0);
 
@@ -76,7 +77,8 @@ export default function AdminFinancialOverview({ services }: FinancialOverviewPr
   const isCurrentMonth = currentMonth.getMonth() === now.getMonth() && currentMonth.getFullYear() === now.getFullYear();
 
   const cards = [
-    { label: 'Faturamento', value: `R$ ${fmt(totalRevenue)}`, icon: DollarSign, accent: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+    { label: 'Fat. Estimado', value: `R$ ${fmt(estimatedRevenue)}`, icon: DollarSign, accent: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' },
+    { label: 'Fat. Real', value: `R$ ${fmt(realRevenue)}`, icon: CheckCircle2, accent: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
     { label: 'Lucro', value: `R$ ${fmt(totalProfit)}`, icon: TrendingUp, accent: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
     { label: 'Pagar (Equipe)', value: `R$ ${fmt(totalPayments)}`, icon: Wallet, accent: 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
   ];
@@ -160,7 +162,7 @@ export default function AdminFinancialOverview({ services }: FinancialOverviewPr
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {cards.map((c) => (
           <div key={c.label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-3 mb-3">
