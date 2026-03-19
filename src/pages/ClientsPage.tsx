@@ -60,10 +60,14 @@ interface ServiceRow {
   responsible_id: string;
   price: string;
   quantity_per_month: string;
+  is_recurring: boolean;
+  notes: string;
+  qty_indefinite: boolean;
 }
 
 const emptyService = (): ServiceRow => ({
   service_name: '', responsible_id: '', price: '', quantity_per_month: '',
+  is_recurring: true, notes: '', qty_indefinite: false,
 });
 
 // Groups tasks like "Vídeos 1/10 — Client" into a single collapsible row
@@ -395,7 +399,9 @@ export default function ClientsPage() {
             service_name: s.service_name.trim(),
             responsible_id: s.responsible_id || SERVICE_DEFAULT_RESPONSIBLE[s.service_name.trim()] || null,
             price: s.price ? parseFloat(s.price) : 0,
-            quantity_per_month: s.quantity_per_month ? parseInt(s.quantity_per_month) : null,
+            quantity_per_month: s.qty_indefinite ? null : (s.quantity_per_month ? parseInt(s.quantity_per_month) : null),
+            is_recurring: s.is_recurring,
+            notes: s.notes.trim() || null,
             last_reset_at: new Date().toISOString(),
           }))
         );
@@ -543,7 +549,9 @@ export default function ClientsPage() {
           service_name: s.service_name.trim(),
           responsible_id: s.responsible_id || SERVICE_DEFAULT_RESPONSIBLE[s.service_name.trim()] || null,
           price: s.price ? parseFloat(s.price) : 0,
-          quantity_per_month: s.quantity_per_month ? parseInt(s.quantity_per_month) : null,
+          quantity_per_month: s.qty_indefinite ? null : (s.quantity_per_month ? parseInt(s.quantity_per_month) : null),
+          is_recurring: s.is_recurring,
+          notes: s.notes.trim() || null,
           last_reset_at: new Date().toISOString(),
         }))
       );
@@ -596,22 +604,22 @@ export default function ClientsPage() {
     setTaskRows(prev => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
   };
 
-  const updateService = (i: number, field: keyof ServiceRow, value: string) => {
+  const updateService = (i: number, field: keyof ServiceRow, value: string | boolean) => {
     setNewServices(prev => prev.map((r, idx) => {
       if (idx !== i) return r;
       const updated = { ...r, [field]: value };
-      if (field === 'service_name' && SERVICE_DEFAULT_RESPONSIBLE[value] && !r.responsible_id) {
+      if (field === 'service_name' && typeof value === 'string' && SERVICE_DEFAULT_RESPONSIBLE[value] && !r.responsible_id) {
         updated.responsible_id = SERVICE_DEFAULT_RESPONSIBLE[value];
       }
       return updated;
     }));
   };
 
-  const updateAddServiceRow = (i: number, field: keyof ServiceRow, value: string) => {
+  const updateAddServiceRow = (i: number, field: keyof ServiceRow, value: string | boolean) => {
     setAddServiceRows(prev => prev.map((r, idx) => {
       if (idx !== i) return r;
       const updated = { ...r, [field]: value };
-      if (field === 'service_name' && SERVICE_DEFAULT_RESPONSIBLE[value] && !r.responsible_id) {
+      if (field === 'service_name' && typeof value === 'string' && SERVICE_DEFAULT_RESPONSIBLE[value] && !r.responsible_id) {
         updated.responsible_id = SERVICE_DEFAULT_RESPONSIBLE[value];
       }
       return updated;
@@ -798,7 +806,34 @@ export default function ClientsPage() {
                         )}
                         <div>
                           <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
-                          <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateAddServiceRow(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
+                          <div className="flex items-center gap-1.5">
+                            <input type="number" min="0" value={s.qty_indefinite ? '' : s.quantity_per_month} onChange={e => updateAddServiceRow(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} disabled={s.qty_indefinite} />
+                            <button
+                              type="button"
+                              onClick={() => updateAddServiceRow(idx, 'qty_indefinite', !s.qty_indefinite)}
+                              className={`text-[8px] font-mono px-1.5 py-1 rounded border whitespace-nowrap shrink-0 transition-colors ${s.qty_indefinite ? 'border-brand-orange/40 text-brand-orange bg-brand-orange/10' : 'border-white/10 text-white/25 hover:text-white/40'}`}
+                            >
+                              ∞
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Tipo + Especificidade */}
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Tipo</label>
+                          <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                            <button type="button" onClick={() => updateAddServiceRow(idx, 'is_recurring', true)} className={`flex-1 px-2 py-1.5 text-[9px] font-mono transition-colors ${s.is_recurring ? 'bg-blue-500/10 text-blue-400 border-r border-white/10' : 'text-white/25 hover:text-white/40 border-r border-white/10'}`}>
+                              <RefreshCw className="w-3 h-3 inline mr-1" />Recorrente
+                            </button>
+                            <button type="button" onClick={() => updateAddServiceRow(idx, 'is_recurring', false)} className={`flex-1 px-2 py-1.5 text-[9px] font-mono transition-colors ${!s.is_recurring ? 'bg-amber-500/10 text-amber-400' : 'text-white/25 hover:text-white/40'}`}>
+                              <Radio className="w-3 h-3 inline mr-1" />Pontual
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Especificidade</label>
+                          <input type="text" value={s.notes} onChange={e => updateAddServiceRow(idx, 'notes', e.target.value)} placeholder="Ex: 4 vídeos de 30s..." className={`w-full ${inputClass}`} />
                         </div>
                       </div>
                     </div>
@@ -829,12 +864,16 @@ export default function ClientsPage() {
                             <p className={`text-sm truncate ${s.completed ? 'text-white/40 line-through' : 'text-white'}`}>{s.service_name}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-1.5">
                               {resp && <span className="text-[10px] font-mono text-white/30">👤 {resp.full_name}</span>}
+                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${s.is_recurring === false ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' : 'border-blue-500/30 text-blue-400 bg-blue-500/10'}`}>
+                                {s.is_recurring === false ? 'PONTUAL' : 'RECORRENTE'}
+                              </span>
                               {s.quantity_per_month && (
                                 <span className="text-[10px] font-mono text-white/25">{s.quantity_per_month}/mês</span>
                               )}
                               {s.due_date && <span className="text-[10px] font-mono text-white/20">📅 {new Date(s.due_date).toLocaleDateString('pt-BR')}</span>}
                               {s.capture_date && <span className="text-[10px] font-mono text-purple-400/60">🎬 {new Date(s.capture_date).toLocaleDateString('pt-BR')}</span>}
                               {s.weekday != null && <span className="text-[10px] font-mono text-cyan-400/60">📻 {WEEKDAY_LABELS[s.weekday]}</span>}
+                              {s.notes && <span className="text-[10px] font-mono text-white/20 italic">— {s.notes}</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -1132,7 +1171,34 @@ export default function ClientsPage() {
                     )}
                     <div>
                       <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
-                      <input type="number" min="0" value={s.quantity_per_month} onChange={e => updateService(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} />
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" min="0" value={s.qty_indefinite ? '' : s.quantity_per_month} onChange={e => updateService(idx, 'quantity_per_month', e.target.value)} placeholder="—" className={`w-full ${inputClass}`} disabled={s.qty_indefinite} />
+                        <button
+                          type="button"
+                          onClick={() => updateService(idx, 'qty_indefinite', !s.qty_indefinite)}
+                          className={`text-[8px] font-mono px-1.5 py-1 rounded border whitespace-nowrap shrink-0 transition-colors ${s.qty_indefinite ? 'border-brand-orange/40 text-brand-orange bg-brand-orange/10' : 'border-white/10 text-white/25 hover:text-white/40'}`}
+                        >
+                          ∞
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Tipo + Especificidade */}
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Tipo</label>
+                      <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                        <button type="button" onClick={() => updateService(idx, 'is_recurring', true)} className={`flex-1 px-2 py-1.5 text-[9px] font-mono transition-colors ${s.is_recurring ? 'bg-blue-500/10 text-blue-400 border-r border-white/10' : 'text-white/25 hover:text-white/40 border-r border-white/10'}`}>
+                          <RefreshCw className="w-3 h-3 inline mr-1" />Recorrente
+                        </button>
+                        <button type="button" onClick={() => updateService(idx, 'is_recurring', false)} className={`flex-1 px-2 py-1.5 text-[9px] font-mono transition-colors ${!s.is_recurring ? 'bg-amber-500/10 text-amber-400' : 'text-white/25 hover:text-white/40'}`}>
+                          <Radio className="w-3 h-3 inline mr-1" />Pontual
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Especificidade</label>
+                      <input type="text" value={s.notes} onChange={e => updateService(idx, 'notes', e.target.value)} placeholder="Ex: 4 vídeos de 30s..." className={`w-full ${inputClass}`} />
                     </div>
                   </div>
                 </div>
