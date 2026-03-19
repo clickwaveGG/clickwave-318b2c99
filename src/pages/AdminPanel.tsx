@@ -63,6 +63,14 @@ export default function AdminPanel() {
     },
   });
 
+  const { data: serviceCompletions = [] } = useQuery({
+    queryKey: ['admin-service-completions'],
+    queryFn: async () => {
+      const { data } = await supabase.from('service_completions').select('*');
+      return data || [];
+    },
+  });
+
   // Announcements
   const { data: announcements = [] } = useQuery({
     queryKey: ['admin-announcements'],
