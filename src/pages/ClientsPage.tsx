@@ -84,9 +84,10 @@ interface SingleTaskRowProps {
   isAdmin: boolean;
   onUpdateDate: (taskId: string, field: 'due_date' | 'capture_date', value: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onUpdateTask: (id: string, updates: Record<string, any>) => void;
 }
 
-function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
+function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask, onUpdateTask }: SingleTaskRowProps) {
   const assignee = profiles.find((p: any) => p.user_id === task.assigned_to);
   const isVideoTask = task.title?.toLowerCase().includes('vídeo') || task.title?.toLowerCase().includes('video');
   const isTraffic = isTrafficTask(task.title || '');
@@ -94,6 +95,8 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
   const [localDueDate, setLocalDueDate] = useState(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
   const [localCaptureDate, setLocalCaptureDate] = useState(task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '');
   const [localWeekday, setLocalWeekday] = useState<string>(task.weekday != null ? String(task.weekday) : '');
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', status: '', priority: '', assigned_to: '', price: '' });
 
   const origDueDate = task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '';
   const origCaptureDate = task.capture_date ? new Date(task.capture_date).toISOString().split('T')[0] : '';
@@ -110,17 +113,85 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
 
   const handleSave = async () => {
     if (isTraffic) {
-      // Save weekday on the task
       const { error } = await supabase.from('tasks').update({ weekday: localWeekday ? parseInt(localWeekday) : null }).eq('id', task.id);
       if (error) { toast.error('Erro ao salvar'); return; }
       toast.success('Dia da semana atualizado!');
-      // Trigger invalidation through parent
-      onUpdateDate(task.id, 'due_date', localDueDate); // just to invalidate
+      onUpdateDate(task.id, 'due_date', localDueDate);
       return;
     }
     if (localDueDate !== origDueDate) onUpdateDate(task.id, 'due_date', localDueDate);
     if (localCaptureDate !== origCaptureDate) onUpdateDate(task.id, 'capture_date', localCaptureDate);
   };
+
+  const startEditing = () => {
+    setEditing(true);
+    setEditForm({
+      title: task.title || '',
+      status: task.status || 'todo',
+      priority: task.priority || 'medium',
+      assigned_to: task.assigned_to || '',
+      price: task.price != null ? String(task.price) : '',
+    });
+  };
+
+  const saveEdit = () => {
+    const updates: Record<string, any> = {
+      title: editForm.title.trim(),
+      status: editForm.status,
+      priority: editForm.priority,
+      assigned_to: editForm.assigned_to || null,
+    };
+    if (isAdmin) updates.price = editForm.price ? parseFloat(editForm.price) : null;
+    onUpdateTask(task.id, updates);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="rounded-xl border border-brand-orange/20 bg-white/[0.03] p-4 space-y-2">
+        <div>
+          <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Título</label>
+          <input value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} className={`w-full ${inputClass}`} />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div>
+            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Status</label>
+            <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className={`w-full ${inputClass}`}>
+              <option value="todo" className="bg-brand-black">A Fazer</option>
+              <option value="in_progress" className="bg-brand-black">Em Progresso</option>
+              <option value="review" className="bg-brand-black">Em Revisão</option>
+              <option value="done" className="bg-brand-black">Concluído</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Prioridade</label>
+            <select value={editForm.priority} onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))} className={`w-full ${inputClass}`}>
+              <option value="low" className="bg-brand-black">Baixa</option>
+              <option value="medium" className="bg-brand-black">Média</option>
+              <option value="high" className="bg-brand-black">Alta</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
+            <select value={editForm.assigned_to} onChange={e => setEditForm(f => ({ ...f, assigned_to: e.target.value }))} className={`w-full ${inputClass}`}>
+              <option value="" className="bg-brand-black">—</option>
+              {profiles.map((p: any) => <option key={p.user_id} value={p.user_id} className="bg-brand-black">{p.full_name}</option>)}
+            </select>
+          </div>
+          {isAdmin && (
+            <div>
+              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Valor</label>
+              <input type="number" step="0.01" min="0" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} placeholder="0,00" className={`w-full ${inputClass}`} />
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <button onClick={() => setEditing(false)} className="text-[10px] font-mono px-3 py-1.5 text-white/30 hover:text-white/60">Cancelar</button>
+          <button onClick={saveEdit} className="text-[10px] font-mono px-3 py-1.5 rounded-lg bg-brand-orange text-brand-black font-medium hover:bg-brand-orange/90">Salvar</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`group/task rounded-xl border border-white/10 bg-white/[0.02] p-4 ${task.status === 'done' ? 'opacity-50' : ''}`}>
@@ -141,13 +212,22 @@ function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDe
             )}
           </div>
         </div>
-        <button
-          onClick={() => onDeleteTask(task.id)}
-          className="text-white/15 hover:text-red-400 transition-colors opacity-0 group-hover/task:opacity-100 shrink-0 mt-0.5"
-          title="Remover tarefa"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+          <button
+            onClick={startEditing}
+            className="text-white/15 hover:text-brand-orange transition-colors opacity-0 group-hover/task:opacity-100"
+            title="Editar tarefa"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => onDeleteTask(task.id)}
+            className="text-white/15 hover:text-red-400 transition-colors opacity-0 group-hover/task:opacity-100"
+            title="Remover tarefa"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
       <div className={`flex items-end gap-2 mt-3 ml-7`}>
         <div className={`grid gap-2 flex-1 ${isTraffic ? 'grid-cols-1 max-w-[200px]' : isVideoTask ? 'grid-cols-2' : 'grid-cols-1 max-w-[200px]'}`}>
@@ -216,9 +296,10 @@ interface GroupedTaskListProps {
   isAdmin: boolean;
   onUpdateDate: (taskId: string, field: 'due_date' | 'capture_date', value: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onUpdateTask: (id: string, updates: Record<string, any>) => void;
 }
 
-function GroupedTaskList({ tasks, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: GroupedTaskListProps) {
+function GroupedTaskList({ tasks, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask, onUpdateTask }: GroupedTaskListProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Group tasks by service base key
@@ -243,7 +324,7 @@ function GroupedTaskList({ tasks, profiles, inputClass, isAdmin, onUpdateDate, o
   };
 
   const renderSingleTask = (task: any) => {
-    return <SingleTaskRow key={task.id} task={task} profiles={profiles} inputClass={inputClass} isAdmin={isAdmin} onUpdateDate={onUpdateDate} onDeleteTask={onDeleteTask} />;
+    return <SingleTaskRow key={task.id} task={task} profiles={profiles} inputClass={inputClass} isAdmin={isAdmin} onUpdateDate={onUpdateDate} onDeleteTask={onDeleteTask} onUpdateTask={onUpdateTask} />;
   };
 
   return (
@@ -309,6 +390,10 @@ export default function ClientsPage() {
   const [editForm, setEditForm] = useState({ name: '', size: 'small', is_recurring: false, notes: '', contact_info: '' });
   const [addTaskForService, setAddTaskForService] = useState<string | null>(null);
   const [serviceTaskRows, setServiceTaskRows] = useState<{ title: string; due_date: string; capture_date: string }[]>([{ title: '', due_date: '', capture_date: '' }]);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [editServiceForm, setEditServiceForm] = useState<{ service_name: string; responsible_id: string; price: string; quantity_per_month: string; is_recurring: boolean; notes: string; weekday: string }>({ service_name: '', responsible_id: '', price: '', quantity_per_month: '', is_recurring: true, notes: '', weekday: '' });
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTaskForm, setEditTaskForm] = useState<{ title: string; status: string; priority: string; assigned_to: string; price: string }>({ title: '', status: '', priority: '', assigned_to: '', price: '' });
 
   // New client form
   const [newClient, setNewClient] = useState({
@@ -520,6 +605,32 @@ export default function ClientsPage() {
       toast.success('Status do serviço atualizado!');
     },
   });
+
+  const updateServiceMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+      const { error } = await supabase.from('client_services').update(updates).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Serviço atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar serviço'),
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+      const { error } = await supabase.from('tasks').update(updates).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      queryClient.invalidateQueries({ queryKey: ['calendar-tasks'] });
+      toast.success('Tarefa atualizada!');
+    },
+    onError: () => toast.error('Erro ao atualizar tarefa'),
+  });
+
   const updateClientMutation = useMutation({
     mutationFn: async () => {
       if (!editingClient || !editForm.name.trim()) throw new Error('Nome obrigatório');
@@ -859,6 +970,89 @@ export default function ClientsPage() {
                     const showingForm = addTaskForService === s.id;
                     return (
                       <div key={s.id} className={`group/svc rounded-xl border p-3 ${s.completed ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/10 bg-white/[0.02]'}`}>
+                      {editingServiceId === s.id ? (
+                        /* ---- EDIT MODE ---- */
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div className="col-span-2 md:col-span-1">
+                              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Serviço</label>
+                              <FloatingSelect
+                                value={editServiceForm.service_name}
+                                onChange={val => setEditServiceForm(f => ({ ...f, service_name: val }))}
+                                options={SERVICE_PRESETS.map(sp => ({ value: sp, label: sp }))}
+                                placeholder="Serviço..."
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Responsável</label>
+                              <FloatingSelect
+                                value={editServiceForm.responsible_id}
+                                onChange={val => setEditServiceForm(f => ({ ...f, responsible_id: val }))}
+                                options={profiles.map((p: any) => ({ value: p.user_id, label: p.full_name }))}
+                                placeholder="Selecionar..."
+                              />
+                            </div>
+                            {isAdmin && (
+                              <div>
+                                <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Valor</label>
+                                <input type="number" step="0.01" min="0" value={editServiceForm.price} onChange={e => setEditServiceForm(f => ({ ...f, price: e.target.value }))} placeholder="0,00" className={`w-full ${inputClass}`} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Qtd/mês</label>
+                              <input type="number" min="0" value={editServiceForm.quantity_per_month} onChange={e => setEditServiceForm(f => ({ ...f, quantity_per_month: e.target.value }))} placeholder="∞" className={`w-full ${inputClass}`} />
+                            </div>
+                            <div>
+                              <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Tipo</label>
+                              <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                                <button type="button" onClick={() => setEditServiceForm(f => ({ ...f, is_recurring: true }))} className={`flex-1 px-2 py-1.5 text-[9px] font-mono transition-colors ${editServiceForm.is_recurring ? 'bg-blue-500/10 text-blue-400' : 'text-white/25'}`}>
+                                  Recorrente
+                                </button>
+                                <button type="button" onClick={() => setEditServiceForm(f => ({ ...f, is_recurring: false }))} className={`flex-1 px-2 py-1.5 text-[9px] font-mono transition-colors ${!editServiceForm.is_recurring ? 'bg-amber-500/10 text-amber-400' : 'text-white/25'}`}>
+                                  Pontual
+                                </button>
+                              </div>
+                            </div>
+                            {isTrafficSvc && (
+                              <div>
+                                <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Dia da semana</label>
+                                <select value={editServiceForm.weekday} onChange={e => setEditServiceForm(f => ({ ...f, weekday: e.target.value }))} className={`w-full ${inputClass}`}>
+                                  <option value="" className="bg-brand-black">—</option>
+                                  {WEEKDAY_LABELS.map((label, i) => <option key={i} value={String(i)} className="bg-brand-black">{label}</option>)}
+                                </select>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-mono text-white/25 uppercase mb-1 block">Especificidade</label>
+                            <input type="text" value={editServiceForm.notes} onChange={e => setEditServiceForm(f => ({ ...f, notes: e.target.value }))} placeholder="Ex: 4 vídeos de 30s..." className={`w-full ${inputClass}`} />
+                          </div>
+                          <div className="flex justify-end gap-2 pt-1">
+                            <button onClick={() => setEditingServiceId(null)} className="text-[10px] font-mono px-3 py-1.5 text-white/30 hover:text-white/60">Cancelar</button>
+                            <button
+                              onClick={() => {
+                                const updates: Record<string, any> = {
+                                  service_name: editServiceForm.service_name.trim(),
+                                  responsible_id: editServiceForm.responsible_id || null,
+                                  is_recurring: editServiceForm.is_recurring,
+                                  notes: editServiceForm.notes.trim() || null,
+                                  quantity_per_month: editServiceForm.quantity_per_month ? parseInt(editServiceForm.quantity_per_month) : null,
+                                  weekday: editServiceForm.weekday ? parseInt(editServiceForm.weekday) : null,
+                                };
+                                if (isAdmin) updates.price = editServiceForm.price ? parseFloat(editServiceForm.price) : 0;
+                                updateServiceMutation.mutate({ id: s.id, updates });
+                                setEditingServiceId(null);
+                              }}
+                              className="text-[10px] font-mono px-3 py-1.5 rounded-lg bg-brand-orange text-brand-black font-medium hover:bg-brand-orange/90"
+                            >
+                              Salvar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ---- VIEW MODE ---- */
                         <div className="flex items-center gap-3">
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm truncate ${s.completed ? 'text-white/40 line-through' : 'text-white'}`}>{s.service_name}</p>
@@ -882,6 +1076,24 @@ export default function ClientsPage() {
                                 R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
                             )}
+                            <button
+                              onClick={() => {
+                                setEditingServiceId(s.id);
+                                setEditServiceForm({
+                                  service_name: s.service_name || '',
+                                  responsible_id: s.responsible_id || '',
+                                  price: s.price ? String(s.price) : '',
+                                  quantity_per_month: s.quantity_per_month ? String(s.quantity_per_month) : '',
+                                  is_recurring: s.is_recurring !== false,
+                                  notes: s.notes || '',
+                                  weekday: s.weekday != null ? String(s.weekday) : '',
+                                });
+                              }}
+                              className="text-white/15 hover:text-brand-orange transition-colors opacity-0 group-hover/svc:opacity-100"
+                              title="Editar serviço"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
                             {isAdmin && (
                               <button
                                 onClick={() => toggleServiceCompletedMutation.mutate({ id: s.id, completed: !s.completed })}
@@ -916,6 +1128,7 @@ export default function ClientsPage() {
                             </button>
                           </div>
                         </div>
+                      )}
                         {/* Inline task creation form for this service */}
                         {showingForm && (
                           <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
@@ -1075,6 +1288,7 @@ export default function ClientsPage() {
                     invalidateAll();
                     toast.success('Tarefa removida!');
                   }}
+                  onUpdateTask={(id, updates) => updateTaskMutation.mutate({ id, updates })}
                 />
               )}
             </div>
