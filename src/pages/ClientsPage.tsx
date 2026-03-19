@@ -84,6 +84,7 @@ interface SingleTaskRowProps {
   isAdmin: boolean;
   onUpdateDate: (taskId: string, field: 'due_date' | 'capture_date', value: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onUpdateTask: (id: string, updates: Record<string, any>) => void;
 }
 
 function SingleTaskRow({ task, profiles, inputClass, isAdmin, onUpdateDate, onDeleteTask }: SingleTaskRowProps) {
