@@ -520,6 +520,30 @@ export default function ClientsPage() {
       toast.success('Status do serviço atualizado!');
     },
   });
+
+  const updateServiceMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+      const { error } = await supabase.from('client_services').update(updates).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Serviço atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar serviço'),
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+      const { error } = await supabase.from('tasks').update(updates).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      queryClient.invalidateQueries({ queryKey: ['calendar-tasks'] });
+      toast.success('Tarefa atualizada!');
+    },
+    onError: () => toast.error('Erro ao atualizar tarefa'),
   const updateClientMutation = useMutation({
     mutationFn: async () => {
       if (!editingClient || !editForm.name.trim()) throw new Error('Nome obrigatório');
