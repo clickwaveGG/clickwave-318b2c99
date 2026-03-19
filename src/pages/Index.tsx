@@ -53,7 +53,7 @@ const TEAM_DATA = [
   },
   {
     title: "Leonardo",
-    subtitle: "Co-Fundador, Web Designer & Estrategista de Marketing",
+    subtitle: "Co-Fundador e Coronel da ClickWave — Web Designer e Estrategista de Marketing",
     content: (
       <div>
         <p className="text-white/70 text-sm md:text-base font-light mb-8">
