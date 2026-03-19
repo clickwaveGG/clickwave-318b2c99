@@ -544,6 +544,8 @@ export default function ClientsPage() {
       toast.success('Tarefa atualizada!');
     },
     onError: () => toast.error('Erro ao atualizar tarefa'),
+  });
+
   const updateClientMutation = useMutation({
     mutationFn: async () => {
       if (!editingClient || !editForm.name.trim()) throw new Error('Nome obrigatório');
