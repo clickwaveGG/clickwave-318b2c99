@@ -1288,6 +1288,7 @@ export default function ClientsPage() {
                     invalidateAll();
                     toast.success('Tarefa removida!');
                   }}
+                  onUpdateTask={(id, updates) => updateTaskMutation.mutate({ id, updates })}
                 />
               )}
             </div>
