@@ -1091,7 +1091,7 @@ export default function ClientsPage() {
                         /* ---- VIEW MODE ---- */
                         <div className="flex items-center gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm truncate ${s.completed ? 'text-white/40 line-through' : 'text-white'}`}>{s.service_name}</p>
+                            <p className={`text-sm truncate ${isCompletedThisMonth ? 'text-white/40 line-through' : 'text-white'}`}>{s.service_name}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-1.5">
                               {resp && <span className="text-[10px] font-mono text-white/30">👤 {resp.full_name}</span>}
                               <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${s.is_recurring === false ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' : 'border-blue-500/30 text-blue-400 bg-blue-500/10'}`}>
