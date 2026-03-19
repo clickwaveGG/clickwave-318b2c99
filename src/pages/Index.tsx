@@ -302,13 +302,12 @@ export default function Index() {
         <ul className="flex items-center justify-center md:justify-start [&_li]:mx-8 [&_img]:max-w-none animate-infinite-scroll">
           {LOGOS.map((logo, index) => (
             <li key={index}>
-              <img src={logo.src} alt={logo.alt} className="h-8 md:h-10 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300 brightness-0 invert" />
+              <img src={logo.src} alt={logo.alt} className="h-10 md:h-12 opacity-60 brightness-0 invert hover:opacity-100 transition-all duration-300" />
             </li>
           ))}
-          {/* Duplicate for infinite scroll effect */}
           {LOGOS.map((logo, index) => (
             <li key={`dup-${index}`}>
-              <img src={logo.src} alt={logo.alt} className="h-8 md:h-10 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300 brightness-0 invert" />
+              <img src={logo.src} alt={logo.alt} className="h-10 md:h-12 opacity-60 brightness-0 invert hover:opacity-100 transition-all duration-300" />
             </li>
           ))}
         </ul>
