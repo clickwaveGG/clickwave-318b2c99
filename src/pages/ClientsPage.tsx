@@ -1001,8 +1001,11 @@ export default function ClientsPage() {
                     const isVideoSvc = s.service_name?.toLowerCase().includes('vídeo') || s.service_name?.toLowerCase().includes('video');
                     const isTrafficSvc = isTrafficTask(s.service_name || '');
                     const showingForm = addTaskForService === s.id;
+                    const isCompletedThisMonth = s.is_recurring
+                      ? serviceCompletions.some((sc: any) => sc.service_id === s.id)
+                      : s.completed;
                     return (
-                      <div key={s.id} className={`group/svc rounded-xl border p-3 ${s.completed ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/10 bg-white/[0.02]'}`}>
+                      <div key={s.id} className={`group/svc rounded-xl border p-3 ${isCompletedThisMonth ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/10 bg-white/[0.02]'}`}>
                       {editingServiceId === s.id ? (
                         /* ---- EDIT MODE ---- */
                         <div className="space-y-2">
