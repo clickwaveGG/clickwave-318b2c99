@@ -357,7 +357,9 @@ export default function CalendarPage() {
 
   // Drag handlers
   const handleDragStart = (e: DragEvent, service: PendingService) => {
-    e.dataTransfer.setData('service', JSON.stringify(service));
+    const dragType = serviceDragTypes[service.id] || 'entrega';
+    const dragData: ServiceDragData = { ...service, dragType };
+    e.dataTransfer.setData('service', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'copy';
   };
 
