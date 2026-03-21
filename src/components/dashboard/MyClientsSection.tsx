@@ -223,6 +223,9 @@ export function MyClientsSection() {
                       const isDone = isServiceDone(s);
                       const Icon = getServiceIcon(s.service_name);
                       const qty = s.quantity_per_month;
+                      const serviceTasks = tasksByServiceId.get(s.id);
+                      const effectiveQty = qty || (serviceTasks?.total || 0);
+                      const effectiveDone = serviceTasks?.done || 0;
 
                       return (
                         <div key={s.id} className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
@@ -242,24 +245,29 @@ export function MyClientsSection() {
                             )}
                           </div>
 
-                          {/* Quantity breakdown for services with quantity */}
-                          {qty && (
+                          {/* Quantity breakdown — uses task count as goal when qty_per_month is not set */}
+                          {effectiveQty > 0 && (
                             <div className="mt-2 pl-6">
                               <div className="flex items-center gap-2 mb-1">
                                 <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
                                   <div
                                     className="h-full rounded-full bg-gradient-to-r from-brand-orange to-brand-orange/60 transition-all duration-500"
-                                    style={{ width: `${isDone ? 100 : Math.round((clientDoneTasks / qty) * 100)}%` }}
+                                    style={{ width: `${isDone ? 100 : effectiveQty > 0 ? Math.round((effectiveDone / effectiveQty) * 100) : 0}%` }}
                                   />
                                 </div>
                                 <span className="text-[10px] font-mono text-white/30">
-                                  {isDone ? qty : clientDoneTasks}/{qty}
+                                  {isDone ? effectiveQty : effectiveDone}/{effectiveQty}
                                 </span>
                               </div>
-                              {!isDone && (
+                              {!isDone && !qty && (
+                                <p className="text-[10px] text-white/25 italic">
+                                  Meta definida pelas entregas agendadas
+                                </p>
+                              )}
+                              {!isDone && qty && (
                                 <p className="text-[10px] text-white/25">
-                                  {qty - clientDoneTasks > 0
-                                    ? `Faltam ${qty - clientDoneTasks} para completar`
+                                  {effectiveQty - effectiveDone > 0
+                                    ? `Faltam ${effectiveQty - effectiveDone} para completar`
                                     : 'Todas as entregas feitas — marcar como concluído'
                                   }
                                 </p>
@@ -267,8 +275,8 @@ export function MyClientsSection() {
                             </div>
                           )}
 
-                          {!qty && !isDone && (
-                            <p className="text-[10px] text-white/20 mt-1 pl-6">Quantidade indefinida</p>
+                          {effectiveQty === 0 && !isDone && (
+                            <p className="text-[10px] text-white/20 mt-1 pl-6">Nenhuma entrega agendada ainda</p>
                           )}
 
                           {s.notes && (
