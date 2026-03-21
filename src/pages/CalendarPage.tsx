@@ -462,6 +462,31 @@ export default function CalendarPage() {
       const entries = entriesByDate[dateStr] || [];
       const isDragTarget = dragOverDay === d;
 
+      const gravacaoEntries = entries.filter(e => e.entryType === 'gravacao');
+      const entregaEntries = entries.filter(e => e.entryType === 'entrega' || e.entryType === 'recurring');
+      const hasGravacao = gravacaoEntries.length > 0;
+      const hasEntrega = entregaEntries.length > 0;
+      const hasBoth = hasGravacao && hasEntrega;
+
+      let dayBgClass = 'border-white/5 bg-white/[0.01] hover:bg-white/[0.03]';
+      let dayBgStyle: React.CSSProperties = {};
+
+      if (isDragTarget) {
+        dayBgClass = 'border-brand-orange/50 scale-[1.02]';
+        dayBgStyle = { background: 'rgba(255, 140, 50, 0.1)' };
+      } else if (hasBoth) {
+        dayBgClass = 'border-white/10';
+        dayBgStyle = { background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 50%, rgba(255, 140, 50, 0.08) 50%)' };
+      } else if (hasGravacao) {
+        dayBgClass = 'border-blue-500/20';
+        dayBgStyle = { background: 'rgba(59, 130, 246, 0.08)' };
+      } else if (hasEntrega && !isToday) {
+        dayBgClass = 'border-brand-orange/15';
+        dayBgStyle = { background: 'rgba(255, 140, 50, 0.05)' };
+      } else if (isToday) {
+        dayBgClass = 'border-brand-orange/20 bg-brand-orange/5';
+      }
+
       cells.push(
         <button
           key={d}
@@ -469,36 +494,43 @@ export default function CalendarPage() {
           onDragOver={(e) => handleDayDragOver(e, d)}
           onDragLeave={handleDayDragLeave}
           onDrop={(e) => handleDayDrop(e, d)}
-          className={`min-h-[100px] border p-1.5 transition-all text-left ${
-            isDragTarget
-              ? 'border-brand-orange/50 bg-brand-orange/10 scale-[1.02]'
-              : isToday
-              ? 'border-brand-orange/20 bg-brand-orange/5'
-              : 'border-white/5 bg-white/[0.01] hover:bg-white/[0.03]'
-          } ${selectedMainDay === d ? 'ring-1 ring-brand-orange/40' : ''}`}
+          className={`min-h-[100px] border p-1.5 transition-all text-left relative ${dayBgClass} ${selectedMainDay === d ? 'ring-1 ring-brand-orange/40' : ''}`}
+          style={dayBgStyle}
         >
           <div className="flex items-center justify-between mb-1">
             <span className={`text-[10px] font-mono ${isToday ? 'text-brand-orange font-bold' : 'text-white/40'}`}>
               {d}
             </span>
-            {entries.length > 0 && (
-              <span className="text-[8px] font-mono text-white/20">{entries.length}</span>
-            )}
+            <div className="flex items-center gap-1">
+              {hasGravacao && (
+                <span className="text-[8px] font-mono font-bold text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded px-1 py-px flex items-center gap-0.5">
+                  <Clapperboard className="w-2 h-2" />
+                  {gravacaoEntries.length}
+                </span>
+              )}
+              {hasEntrega && (
+                <span className="text-[8px] font-mono text-white/30">{entregaEntries.length}</span>
+              )}
+            </div>
           </div>
           <div className="space-y-0.5 overflow-hidden max-h-[70px]">
             {entries.slice(0, 3).map((entry, idx) => {
               const assignee = entry.task.assigned_to ? profileMap[entry.task.assigned_to] : null;
               const firstName = assignee?.split(' ')[0] || '?';
-              const priorityClass = PRIORITY_COLORS[entry.task.priority] || PRIORITY_COLORS.medium;
+              const isGrav = entry.entryType === 'gravacao';
+              const priorityClass = isGrav
+                ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                : entry.isDone
+                ? 'opacity-40 line-through border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-300/60'
+                : (PRIORITY_COLORS[entry.task.priority] || PRIORITY_COLORS.medium);
 
               return (
                 <div
                   key={`${entry.task.id}-${idx}`}
-                  className={`flex items-center gap-1 px-1 py-0.5 rounded text-[9px] leading-tight border ${
-                    entry.isDone ? 'opacity-40 line-through border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-300/60' : priorityClass
-                  }`}
+                  className={`flex items-center gap-1 px-1 py-0.5 rounded text-[9px] leading-tight border ${priorityClass}`}
                 >
-                  {entry.isDone && <CheckCircle2 className="w-2 h-2 text-emerald-400 shrink-0" />}
+                  {isGrav && <Clapperboard className="w-2 h-2 text-blue-400 shrink-0" />}
+                  {entry.isDone && !isGrav && <CheckCircle2 className="w-2 h-2 text-emerald-400 shrink-0" />}
                   <span className="truncate flex-1">{entry.task.title}</span>
                   <span className="text-white/20 shrink-0">{firstName}</span>
                 </div>
