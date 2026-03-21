@@ -379,18 +379,23 @@ export default function CalendarPage() {
     const raw = e.dataTransfer.getData('service');
     if (!raw) return;
 
-    const service: PendingService = JSON.parse(raw);
+    const service: ServiceDragData = JSON.parse(raw);
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const isGravacao = service.dragType === 'gravacao';
 
-    // Create the task
+    const taskTitle = isGravacao
+      ? `Gravação: ${service.service_name} — ${service.client_name}`
+      : `${service.service_name} — ${service.client_name}`;
+
     const { data: insertedTasks, error } = await supabase.from('tasks').insert({
-      title: `${service.service_name} — ${service.client_name}`,
+      title: taskTitle,
       status: 'todo',
       priority: 'medium',
       assigned_to: service.responsible_id || user!.id,
       created_by: user!.id,
       client_name: service.client_name,
-      due_date: dateStr,
+      due_date: isGravacao ? null : dateStr,
+      capture_date: isGravacao ? dateStr : null,
     }).select();
 
     if (error) {
@@ -398,15 +403,15 @@ export default function CalendarPage() {
       return;
     }
 
-    toast.success('Tarefa agendada!');
+    toast.success(isGravacao ? 'Gravação agendada!' : 'Entrega agendada!');
     invalidate();
 
-    // If videomaker, prompt for capture date
-    if (isVideomaker && service.service_name.toLowerCase().includes('vídeo') || service.service_name.toLowerCase().includes('video')) {
+    // If it's an entrega of video, prompt for capture date (videomaker)
+    if (!isGravacao && isVideomaker && (service.service_name.toLowerCase().includes('vídeo') || service.service_name.toLowerCase().includes('video'))) {
       if (insertedTasks && insertedTasks.length > 0) {
         setCaptureDialog({
           taskId: insertedTasks[0].id,
-          taskTitle: `${service.service_name} — ${service.client_name}`,
+          taskTitle: taskTitle,
           deliveryDate: dateStr,
         });
       }
