@@ -406,9 +406,6 @@ export default function CalendarPage() {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const isGravacao = service.dragType === 'gravacao';
 
-    // Check existing gravações on this day
-    const existingGravacoes = (entriesByDate[dateStr] || []).filter(e => e.entryType === 'gravacao');
-
     const taskTitle = isGravacao
       ? `Gravação: ${service.service_name} — ${service.client_name}`
       : `${service.service_name} — ${service.client_name}`;
@@ -432,25 +429,19 @@ export default function CalendarPage() {
     toast.success(isGravacao ? 'Gravação agendada!' : 'Entrega agendada!');
     invalidate();
 
-    // If gravação and there are already others on this day, prompt for time
-    if (isGravacao && existingGravacoes.length > 0 && insertedTasks && insertedTasks.length > 0) {
-      setTimeDialog({
+    // Open unified post-drop dialog
+    if (insertedTasks && insertedTasks.length > 0) {
+      setPostDropDialog({
         taskId: insertedTasks[0].id,
-        taskTitle: taskTitle,
-        existingCount: existingGravacoes.length + 1,
+        taskTitle,
+        dragType: isGravacao ? 'gravacao' : 'entrega',
+        dateStr,
+        serviceName: service.service_name,
+        clientName: service.client_name,
       });
-      setGravacaoTime('');
-    }
-
-    // If it's an entrega of video, prompt for capture date (videomaker)
-    if (!isGravacao && isVideomaker && (service.service_name.toLowerCase().includes('vídeo') || service.service_name.toLowerCase().includes('video'))) {
-      if (insertedTasks && insertedTasks.length > 0) {
-        setCaptureDialog({
-          taskId: insertedTasks[0].id,
-          taskTitle: taskTitle,
-          deliveryDate: dateStr,
-        });
-      }
+      setPdTime('');
+      setPdSubject('');
+      setPdLinkedGravacao('');
     }
   };
 
