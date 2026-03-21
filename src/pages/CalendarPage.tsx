@@ -62,6 +62,8 @@ type PendingService = {
   notes: string | null;
 };
 
+type ServiceDragData = PendingService & { dragType: 'entrega' | 'gravacao' };
+
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
 }
