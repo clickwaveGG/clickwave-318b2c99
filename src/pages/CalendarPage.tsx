@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   ChevronLeft, ChevronRight, CalendarDays, CheckCircle2, XCircle, RotateCcw,
-  Video, Palette, Globe, Megaphone, Bot, Package, GripVertical, Calendar as CalendarIcon
+  Video, Palette, Globe, Megaphone, Bot, Package, GripVertical, Calendar as CalendarIcon,
+  Clapperboard, Send
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
