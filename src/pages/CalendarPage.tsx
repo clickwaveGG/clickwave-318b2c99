@@ -110,21 +110,26 @@ export default function CalendarPage() {
   const [selectedMainDay, setSelectedMainDay] = useState<number | null>(null);
   const [dragOverDay, setDragOverDay] = useState<number | null>(null);
   const [serviceDragTypes, setServiceDragTypes] = useState<Record<string, 'entrega' | 'gravacao'>>({});
-  // Capture date dialog state (videomaker only)
+  // Unified post-drop dialog
+  const [postDropDialog, setPostDropDialog] = useState<{
+    taskId: string;
+    taskTitle: string;
+    dragType: 'entrega' | 'gravacao';
+    dateStr: string;
+    serviceName: string;
+    clientName: string;
+  } | null>(null);
+  const [pdTime, setPdTime] = useState('');
+  const [pdSubject, setPdSubject] = useState('');
+  const [pdLinkedGravacao, setPdLinkedGravacao] = useState('');
+
+  // Capture date dialog state (videomaker entrega linking)
   const [captureDialog, setCaptureDialog] = useState<{
     taskId: string;
     taskTitle: string;
     deliveryDate: string;
   } | null>(null);
   const [captureDate, setCaptureDate] = useState<Date | undefined>(undefined);
-
-  // Time dialog for multiple gravações on same day
-  const [timeDialog, setTimeDialog] = useState<{
-    taskId: string;
-    taskTitle: string;
-    existingCount: number;
-  } | null>(null);
-  const [gravacaoTime, setGravacaoTime] = useState('');
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['calendar-tasks'] });
