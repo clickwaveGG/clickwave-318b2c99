@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   ChevronLeft, ChevronRight, CalendarDays, CheckCircle2, XCircle, RotateCcw,
   Video, Palette, Globe, Megaphone, Bot, Package, GripVertical, Calendar as CalendarIcon,
-  Clapperboard, Send
+  Clapperboard, Send, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
