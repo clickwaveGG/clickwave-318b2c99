@@ -39,6 +39,7 @@ type CalendarEntry = {
   dateKey: string;
   isRecurring: boolean;
   isDone: boolean;
+  entryType: 'entrega' | 'gravacao' | 'recurring';
 };
 
 type Profile = {
