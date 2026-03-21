@@ -981,50 +981,119 @@ export default function CalendarPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Time Dialog for multiple gravações */}
-      <Dialog open={!!timeDialog} onOpenChange={(open) => { if (!open) { setTimeDialog(null); setGravacaoTime(''); } }}>
-        <DialogContent className="bg-brand-black border-white/10 max-w-sm">
+      {/* Unified Post-Drop Dialog */}
+      <Dialog open={!!postDropDialog} onOpenChange={(open) => { if (!open) { setPostDropDialog(null); setPdTime(''); setPdSubject(''); setPdLinkedGravacao(''); } }}>
+        <DialogContent className="bg-brand-black border-white/10 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white font-serif text-lg flex items-center gap-2">
-              <Clapperboard className="w-5 h-5 text-blue-400" />
-              Horário da Gravação
+              {postDropDialog?.dragType === 'gravacao'
+                ? <><Clapperboard className="w-5 h-5 text-blue-400" /> Detalhes da Gravação</>
+                : <><Send className="w-5 h-5 text-brand-orange" /> Detalhes da Entrega</>
+              }
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-xs text-white/40 font-mono">
-              {timeDialog?.taskTitle}
+              {postDropDialog?.serviceName} — <span className="text-brand-orange">{postDropDialog?.clientName}</span>
             </p>
             <p className="text-xs text-white/30">
-              Existem <span className="text-blue-400 font-bold">{timeDialog?.existingCount}</span> gravações neste dia. Defina o horário para organizar a agenda.
+              {postDropDialog?.dragType === 'gravacao' ? 'Gravação' : 'Entrega'} em:{' '}
+              <span className="text-white/60">
+                {postDropDialog?.dateStr && format(new Date(postDropDialog.dateStr + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR })}
+              </span>
             </p>
-            <input
-              type="time"
-              value={gravacaoTime}
-              onChange={(e) => setGravacaoTime(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.03] text-white text-sm font-mono focus:outline-none focus:border-blue-500/40"
-            />
-            <div className="flex gap-2">
+
+            {/* Horário */}
+            <div>
+              <label className="text-[10px] font-mono text-white/40 uppercase tracking-wider mb-1 block">
+                Horário
+              </label>
+              <input
+                type="time"
+                value={pdTime}
+                onChange={(e) => setPdTime(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] text-white text-sm font-mono focus:outline-none focus:border-blue-500/40"
+              />
+            </div>
+
+            {/* Assunto */}
+            <div>
+              <label className="text-[10px] font-mono text-white/40 uppercase tracking-wider mb-1 block">
+                Assunto / Tema
+              </label>
+              <input
+                type="text"
+                value={pdSubject}
+                onChange={(e) => setPdSubject(e.target.value)}
+                placeholder="Ex: Vídeo institucional, Review do produto..."
+                className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] text-white text-sm placeholder:text-white/15 focus:outline-none focus:border-blue-500/40"
+              />
+            </div>
+
+            {/* Link to gravação (only for entregas) */}
+            {postDropDialog?.dragType === 'entrega' && (() => {
+              const gravacaoTasks = allTasks.filter(t =>
+                t.capture_date &&
+                t.client_name === postDropDialog.clientName &&
+                t.status !== 'done'
+              );
+              if (gravacaoTasks.length === 0) return null;
+              return (
+                <div>
+                  <label className="text-[10px] font-mono text-white/40 uppercase tracking-wider mb-1 block">
+                    Vincular a uma gravação
+                  </label>
+                  <select
+                    value={pdLinkedGravacao}
+                    onChange={(e) => setPdLinkedGravacao(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] text-white text-sm font-mono focus:outline-none focus:border-blue-500/40 appearance-none"
+                  >
+                    <option value="" className="bg-brand-black text-white/40">Nenhuma</option>
+                    {gravacaoTasks.map(gt => (
+                      <option key={gt.id} value={gt.id} className="bg-brand-black text-white">
+                        {gt.title} — {gt.capture_date ? format(new Date(gt.capture_date), 'dd/MM') : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })()}
+
+            <div className="flex gap-2 pt-2">
               <button
-                onClick={() => { setTimeDialog(null); setGravacaoTime(''); }}
-                className="flex-1 py-2 rounded-xl border border-white/10 text-white/40 text-xs font-mono hover:bg-white/5 transition-colors"
+                onClick={() => { setPostDropDialog(null); setPdTime(''); setPdSubject(''); setPdLinkedGravacao(''); }}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/40 text-xs font-mono hover:bg-white/5 transition-colors"
               >
                 Pular
               </button>
               <button
                 onClick={async () => {
-                  if (!timeDialog || !gravacaoTime) return;
-                  await supabase.from('tasks').update({
-                    description: `Horário: ${gravacaoTime}`,
-                  }).eq('id', timeDialog.taskId);
-                  toast.success('Horário definido!');
-                  setTimeDialog(null);
-                  setGravacaoTime('');
+                  if (!postDropDialog) return;
+                  const updates: Record<string, string | null> = {};
+                  const descParts: string[] = [];
+                  if (pdTime) descParts.push(`Horário: ${pdTime}`);
+                  if (pdSubject) descParts.push(`Assunto: ${pdSubject}`);
+                  if (pdLinkedGravacao) descParts.push(`Gravação vinculada: ${pdLinkedGravacao}`);
+                  if (descParts.length > 0) {
+                    updates.description = descParts.join(' | ');
+                  }
+                  if (Object.keys(updates).length > 0) {
+                    await supabase.from('tasks').update(updates).eq('id', postDropDialog.taskId);
+                  }
+                  toast.success('Detalhes salvos!');
+                  setPostDropDialog(null);
+                  setPdTime('');
+                  setPdSubject('');
+                  setPdLinkedGravacao('');
                   invalidate();
                 }}
-                disabled={!gravacaoTime}
-                className="flex-1 py-2 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-mono hover:bg-blue-500/20 transition-colors disabled:opacity-30"
+                className={`flex-1 py-2.5 rounded-xl border text-xs font-mono transition-colors ${
+                  postDropDialog?.dragType === 'gravacao'
+                    ? 'border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                    : 'border-brand-orange/30 bg-brand-orange/10 text-brand-orange hover:bg-brand-orange/20'
+                }`}
               >
-                Confirmar horário
+                Confirmar
               </button>
             </div>
           </div>
