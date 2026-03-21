@@ -975,6 +975,56 @@ export default function CalendarPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Time Dialog for multiple gravações */}
+      <Dialog open={!!timeDialog} onOpenChange={(open) => { if (!open) { setTimeDialog(null); setGravacaoTime(''); } }}>
+        <DialogContent className="bg-brand-black border-white/10 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white font-serif text-lg flex items-center gap-2">
+              <Clapperboard className="w-5 h-5 text-blue-400" />
+              Horário da Gravação
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-white/40 font-mono">
+              {timeDialog?.taskTitle}
+            </p>
+            <p className="text-xs text-white/30">
+              Existem <span className="text-blue-400 font-bold">{timeDialog?.existingCount}</span> gravações neste dia. Defina o horário para organizar a agenda.
+            </p>
+            <input
+              type="time"
+              value={gravacaoTime}
+              onChange={(e) => setGravacaoTime(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.03] text-white text-sm font-mono focus:outline-none focus:border-blue-500/40"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setTimeDialog(null); setGravacaoTime(''); }}
+                className="flex-1 py-2 rounded-xl border border-white/10 text-white/40 text-xs font-mono hover:bg-white/5 transition-colors"
+              >
+                Pular
+              </button>
+              <button
+                onClick={async () => {
+                  if (!timeDialog || !gravacaoTime) return;
+                  await supabase.from('tasks').update({
+                    description: `Horário: ${gravacaoTime}`,
+                  }).eq('id', timeDialog.taskId);
+                  toast.success('Horário definido!');
+                  setTimeDialog(null);
+                  setGravacaoTime('');
+                  invalidate();
+                }}
+                disabled={!gravacaoTime}
+                className="flex-1 py-2 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-mono hover:bg-blue-500/20 transition-colors disabled:opacity-30"
+              >
+                Confirmar horário
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
